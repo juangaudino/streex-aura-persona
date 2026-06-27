@@ -1,92 +1,53 @@
-No me has pegado tu contenido todavía, así que armaré el sitio con **placeholders bien marcados** (nombre, bio, experiencia, proyectos, foto) que reemplazarás luego pegando tu CV o subiendo un PDF/foto en el chat. La estructura, animaciones y diseño ya quedarán listos.
+Voy a reemplazar todos los placeholders con tu contenido real del CV, usar tu foto de perfil del PDF, y dejar el PDF disponible para descarga.
 
-## Dirección de diseño
+## Cambios
 
-Estilo **Apple minimalista**, no genérico:
-- Tipografía: SF Pro–like vía `Inter Display` para titulares grandes (tracking apretado, peso 600) + `Inter` para body. Tamaños generosos al estilo apple.com (hero 96–120px desktop).
-- Paleta sobria:
-  - Light: fondo `#fbfbfd`, texto `#1d1d1f`, acento sutil `#0066cc`.
-  - Dark: fondo `#000`, superficies `#0a0a0a`/`#141414`, texto `#f5f5f7`.
-- Mucho espacio en blanco, grids asimétricos puntuales, divisores casi invisibles.
-- Toggle ES/EN y Light/Dark discretos en la nav (icono).
+**1. Contenido bilingüe (ES/EN) en `src/i18n/dictionary.ts`**
+- Nombre: **Juan Gaudino**
+- Rol: Media Planner · OOH & DOOH Strategist (ES: Planificador de Medios · Estratega OOH & DOOH)
+- Ubicación: Salt Lake City, UT · Available for U.S. market opportunities
+- Hero título corto y potente:
+  - EN: "I plan media that moves markets."
+  - ES: "Planifico medios que mueven mercados."
+- About: bio adaptada de tu "About me" (15+ años, LATAM, ahora en Utah expandiéndote a programmatic + digital analytics, enfoque data-driven)
+- Stats: `15+` años, `4+` mercados LATAM abiertos, `10+` planners liderados
+- Experiencia:
+  - LATCOM — Media Planning Coordinator (Buenos Aires, 2021–2023)
+  - LATCOM — Strategic Development Analyst (USA/LATAM/Europa, 2015–2021)
+  - (Solo tu CV muestra estos dos; mantengo solo los reales)
+- Educación añadida como tercera tarjeta tipo "milestone" al final del timeline:
+  - Entrepreneurship Certificate — Weber State University, 2026
+  - Bachelor in Marketing & Advertising — URBE, 2006
+- Skills (basados en tu perfil real):
+  - **Strategy**: Media Planning, OOH/DOOH Strategy, Market Research, Vendor Negotiation, Regional Expansion
+  - **Analytics**: Programmatic Advertising, Digital Analytics, Reporting, Economic Projections, A/B Insights
+  - **Leadership**: Team Leadership (10+), Client Relations, Cross-market Coordination, Vendor Partnerships, Executive Reporting
+- Contact:
+  - Email: juangaudino@gmail.com
+  - Phone: +1 801 651 8187
+  - LinkedIn: placeholder (te pediré la URL si la quieres específica)
+  - Quito GitHub (no aplica a tu perfil) y añado **LinkedIn + Email + Phone**
 
-## Animaciones e interactividad (premium pero sobrio)
+**2. Sección "Proyectos destacados" → "Selected campaigns / Campañas destacadas"**
+Tu CV no menciona proyectos puntuales por nombre, así que la reformulo a **mercados / verticales en los que has trabajado** como cards visuales (Transit, Malls, Airports, Digital Billboards · multi-país LATAM). Si prefieres que la quite del todo, dímelo.
 
-Usando **Motion (framer-motion)** + scroll nativo:
-- Hero con **reveal por palabras** del nombre/título (stagger 40ms, ease apple-cubic `[0.16, 1, 0.3, 1]`).
-- **Parallax sutil** de foto/retrato en hero (translateY al scroll, sin exagerar).
-- Secciones con **fade + translateY 24px** al entrar en viewport (una sola vez).
-- Cursor magnético en CTAs principales (descargar CV, enviar mensaje).
-- Timeline de experiencia con **línea que se dibuja** al hacer scroll (SVG path con `pathLength`).
-- Cards de proyectos con **hover layered**: imagen escala 1.03, overlay con título sube, sombra crece.
-- Toggle dark/light con **transición de color global** suave (300ms en `background`/`color`).
-- Skills mostrados como **chips que se reordenan** al cambiar de categoría (layout animation de Motion).
-- Smooth scroll (lenis) para sensación de inercia.
+**3. Foto del hero**
+Reemplazo el placeholder generado por **tu foto real** extraída del PDF (`img_p1_5.jpg`). La subo como CDN asset (lovable-assets) para no inflar el repo.
 
-## Estructura del sitio
+**4. PDF descargable**
+Copio tu PDF a `public/cv.pdf` para que el botón "Descargar CV" entregue tu CV real.
 
-Single page, scroll vertical, secciones bien separadas:
+**5. SEO**
+- Título: "Juan Gaudino — Media Planner & OOH/DOOH Strategist"
+- Description: usa tu about me resumido
+- og:title / og:description igual
 
-```text
-[Nav fija translúcida: Logo iniciales · Sobre · Experiencia · Proyectos · Contacto · ES/EN · ☀/☾]
+**6. Footer**
+"© 2026 — Juan Gaudino. Salt Lake City, UT."
 
-1. Hero
-   - Nombre enorme con reveal por palabras
-   - Una línea de rol + ciudad
-   - Foto profesional (right-aligned, tamaño grande, esquinas suaves)
-   - CTA: "Descargar CV" + "Contactar"
+## Lo que NO toco
+- Diseño, animaciones, light/dark toggle, ES/EN toggle, layout — todo se queda como está y aprobaste.
 
-2. Sobre mí
-   - Bio de 2–3 párrafos, tipografía grande
-   - Stats clave (años de experiencia, proyectos, etc.)
-
-3. Experiencia
-   - Timeline vertical con línea animada
-   - Cada item: empresa · rol · años · 2 líneas de logros
-
-4. Proyectos destacados
-   - Grid de 3–6 cards con imagen, título, stack, link
-
-5. Skills
-   - Chips agrupados por categoría con tabs
-
-6. Contacto
-   - Formulario (nombre, email, mensaje) con validación zod
-   - Links a LinkedIn, GitHub, email
-   - Footer minimal
-
-[Botón flotante: Descargar CV PDF]
-```
-
-## Idioma (ES/EN)
-
-Diccionario simple en `src/i18n/{es,en}.ts` con todas las strings. Toggle persiste en `localStorage`. Sin librería pesada (i18next innecesario para un CV).
-
-## Descargar CV en PDF
-
-Dos opciones — recomiendo la **A**:
-- **A (recomendada):** Subes tu PDF al chat, lo coloco en `public/cv.pdf` y el botón lo descarga directamente. Más fiel a tu CV real.
-- B: Generar el PDF on-the-fly desde el contenido del sitio con `react-to-print` o `jspdf`. Más trabajo, peor tipografía.
-
-## Formulario de contacto
-
-- Validación cliente con `zod` + `react-hook-form` (ya están).
-- Envío: necesita backend. Recomiendo activar **Lovable Cloud** para guardar mensajes en una tabla `contact_messages` y opcionalmente enviarte email vía Resend. Sin Cloud, el form solo validaría y abriría `mailto:`. Confirma si activo Cloud.
-
-## Stack técnico
-
-- TanStack Start (ya configurado), una sola ruta `/` por ahora.
-- Motion (framer-motion), Lenis para smooth scroll, Lucide para iconos.
-- Tokens de color en `src/styles.css` (light + `.dark`), toggle con clase en `<html>`.
-- Componentes en `src/components/cv/`: `Nav`, `Hero`, `About`, `Experience`, `Projects`, `Skills`, `Contact`, `LanguageToggle`, `ThemeToggle`.
-- Diccionarios en `src/i18n/`.
-- Hook `useLang()` y `useTheme()` con persistencia en localStorage.
-
-## Qué necesito de ti (después de aprobar el plan)
-
-1. **Tu CV** — pégalo en el chat o sube el PDF (lo parseo).
-2. **Tu foto profesional** — súbela en el chat.
-3. **Confirmar si activo Lovable Cloud** para que el formulario guarde mensajes (recomendado).
-4. **Si tienes un PDF de CV** ya diseñado para el botón de descarga.
-
-Si apruebas, construyo todo el shell con placeholders y luego, cuando me pases el contenido, lo reemplazo en una pasada.
+## Preguntas opcionales (puedo asumir defaults si no respondes)
+- URL de LinkedIn — si no me la das, uso `linkedin.com/in/juangaudino` como placeholder.
+- ¿Mantengo o quito la sección "Selected campaigns"? Por defecto la mantengo reformulada.
