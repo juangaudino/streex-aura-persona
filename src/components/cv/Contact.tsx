@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { z } from "zod";
-import { ArrowRight, Mail, Linkedin, Github } from "lucide-react";
+import { ArrowRight, Mail, Linkedin, Phone } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
 import { Reveal, SectionHeader } from "./Reveal";
@@ -27,7 +27,7 @@ export function Contact() {
     }
     const subject = encodeURIComponent(`Contact from ${parsed.data.name}`);
     const body = encodeURIComponent(`${parsed.data.message}\n\n— ${parsed.data.name} (${parsed.data.email})`);
-    window.location.href = `mailto:hello@example.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:juangaudino@gmail.com?subject=${subject}&body=${body}`;
     setStatus("sent");
   }
 
@@ -44,9 +44,9 @@ export function Contact() {
             <Reveal delay={0.1}>
               <ul className="mt-8 space-y-4">
                 {[
-                  { Icon: Mail, label: "hello@example.com", href: "mailto:hello@example.com" },
-                  { Icon: Linkedin, label: "linkedin.com/in/you", href: "https://linkedin.com" },
-                  { Icon: Github, label: "github.com/you", href: "https://github.com" },
+                  { Icon: Mail, label: "juangaudino@gmail.com", href: "mailto:juangaudino@gmail.com" },
+                  { Icon: Phone, label: "+1 (801) 651-8187", href: "tel:+18016518187" },
+                  { Icon: Linkedin, label: "linkedin.com/in/juangaudino", href: "https://linkedin.com/in/juangaudino" },
                 ].map(({ Icon, label, href }) => (
                   <li key={label}>
                     <a
