@@ -77,14 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Juan Resume" },
+      { name: "description", content: "Aura Persona is a minimalist, interactive website builder for professional resumes." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Juan Resume" },
+      { property: "og:description", content: "Aura Persona is a minimalist, interactive website builder for professional resumes." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Juan Resume" },
+      { name: "twitter:description", content: "Aura Persona is a minimalist, interactive website builder for professional resumes." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c2b6bbc3-4364-4cc8-88d6-50cc0a83a39b/id-preview-8ccf15a8--4afd92e5-8292-49be-b882-109617f84bf5.lovable.app-1782607644088.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/c2b6bbc3-4364-4cc8-88d6-50cc0a83a39b/id-preview-8ccf15a8--4afd92e5-8292-49be-b882-109617f84bf5.lovable.app-1782607644088.png" },
     ],
     links: [
       {
