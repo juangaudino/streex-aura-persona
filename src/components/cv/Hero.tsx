@@ -98,11 +98,29 @@ export function Hero() {
           transition={{ duration: 1.4, ease, delay: 0.3 }}
           className="relative md:col-span-5"
         >
-          <div className="relative aspect-[4/5] overflow-hidden rounded-3xl bg-surface">
+          <div className="relative aspect-[4/5]">
+            {/* Ambient halo that bleeds into the page background */}
+            <div
+              aria-hidden
+              className="absolute inset-0 -z-10"
+              style={{
+                background:
+                  "radial-gradient(60% 55% at 50% 45%, color-mix(in oklab, var(--foreground) 14%, transparent) 0%, transparent 70%)",
+                filter: "blur(20px)",
+              }}
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 -z-10"
+              style={{
+                background:
+                  "linear-gradient(to bottom, transparent, var(--background))",
+              }}
+            />
             <img
               src={portrait}
               alt="Juan Gaudino"
-              className="h-full w-full object-cover"
+              className="relative h-full w-full object-contain object-bottom drop-shadow-2xl"
             />
           </div>
         </motion.div>
