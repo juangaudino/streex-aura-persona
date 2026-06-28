@@ -83,17 +83,20 @@ export function Hero() {
       id="top"
       className="relative flex min-h-[100svh] items-end overflow-hidden pt-32 pb-16 md:pb-24"
     >
-      {/* Hero aurora gradient — sits behind everything, theme-aware */}
-      <div
+      {/* Hero aurora gradient — sits behind everything, theme-aware, drifts with cursor */}
+      <motion.div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
+        className="pointer-events-none absolute -inset-12 -z-10"
         style={{
+          x: auroraX,
+          y: auroraY,
           background:
             theme === "dark"
               ? "radial-gradient(60% 70% at 78% 55%, color-mix(in oklab, var(--accent) 22%, transparent) 0%, transparent 60%), radial-gradient(90% 80% at 50% 100%, color-mix(in oklab, var(--foreground) 6%, transparent) 0%, transparent 70%)"
               : "radial-gradient(55% 65% at 78% 50%, color-mix(in oklab, var(--accent) 14%, transparent) 0%, transparent 60%), radial-gradient(90% 80% at 50% 100%, color-mix(in oklab, var(--foreground) 4%, transparent) 0%, transparent 70%)",
         }}
       />
+
       {/* Bottom fade into the next section */}
       <div
         aria-hidden
