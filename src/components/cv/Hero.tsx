@@ -30,8 +30,52 @@ export function Hero() {
   const textY = useTransform(scrollYProgress, [0, 1], [0, -40]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
+  // Cursor parallax — normalized (-1..1) from hero center
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const sx = useSpring(mx, { stiffness: 60, damping: 18, mass: 0.6 });
+  const sy = useSpring(my, { stiffness: 60, damping: 18, mass: 0.6 });
+
+  const portraitX = useTransform(sx, (v) => v * 18);
+  const portraitYParallax = useTransform(sy, (v) => v * 14);
+  const glowX = useTransform(sx, (v) => v * 40);
+  const glowY = useTransform(sy, (v) => v * 30);
+  const auroraX = useTransform(sx, (v) => v * -30);
+  const auroraY = useTransform(sy, (v) => v * -20);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia("(hover: none)").matches) return;
+
+    let raf = 0;
+    const onMove = (e: PointerEvent) => {
+      const rect = el.getBoundingClientRect();
+      const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        mx.set(Math.max(-1, Math.min(1, nx)));
+        my.set(Math.max(-1, Math.min(1, ny)));
+      });
+    };
+    const onLeave = () => {
+      mx.set(0);
+      my.set(0);
+    };
+    el.addEventListener("pointermove", onMove);
+    el.addEventListener("pointerleave", onLeave);
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerleave", onLeave);
+    };
+  }, [mx, my]);
+
   const matchedPortrait =
     theme === "dark" ? portraitDarkAsset.url : portraitLightAsset.url;
+
 
   return (
     <section
