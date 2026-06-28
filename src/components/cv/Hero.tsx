@@ -1,5 +1,5 @@
-import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
-import { useRef } from "react";
+import { AnimatePresence, motion, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
+import { useEffect, useRef } from "react";
 import { ArrowRight, Download } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
@@ -8,6 +8,7 @@ import portraitDarkAsset from "@/assets/juan-dark.png.asset.json";
 
 
 const ease = [0.16, 1, 0.3, 1] as const;
+
 
 // Mask: soft radial that keeps the face crisp and dissolves the edges
 // (especially the bottom + outer rim) into the hero gradient.
