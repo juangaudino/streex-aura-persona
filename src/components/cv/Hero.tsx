@@ -5,7 +5,7 @@ import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
 import portraitLightAsset from "@/assets/juan-light.png.asset.json";
 import portraitDarkAsset from "@/assets/juan-dark.png.asset.json";
-import portraitCutoutAsset from "@/assets/juan-transparent.png.asset.json";
+
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
