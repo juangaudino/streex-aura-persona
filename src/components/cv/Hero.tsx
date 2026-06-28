@@ -1,5 +1,5 @@
-import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
-import { useRef } from "react";
+import { AnimatePresence, motion, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
+import { useEffect, useRef } from "react";
 import { ArrowRight, Download } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
@@ -8,6 +8,7 @@ import portraitDarkAsset from "@/assets/juan-dark.png.asset.json";
 
 
 const ease = [0.16, 1, 0.3, 1] as const;
+
 
 // Mask: soft radial that keeps the face crisp and dissolves the edges
 // (especially the bottom + outer rim) into the hero gradient.
@@ -29,8 +30,52 @@ export function Hero() {
   const textY = useTransform(scrollYProgress, [0, 1], [0, -40]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
+  // Cursor parallax — normalized (-1..1) from hero center
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const sx = useSpring(mx, { stiffness: 60, damping: 18, mass: 0.6 });
+  const sy = useSpring(my, { stiffness: 60, damping: 18, mass: 0.6 });
+
+  const portraitX = useTransform(sx, (v) => v * 18);
+  const portraitYParallax = useTransform(sy, (v) => v * 14);
+  const glowX = useTransform(sx, (v) => v * 40);
+  const glowY = useTransform(sy, (v) => v * 30);
+  const auroraX = useTransform(sx, (v) => v * -30);
+  const auroraY = useTransform(sy, (v) => v * -20);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia("(hover: none)").matches) return;
+
+    let raf = 0;
+    const onMove = (e: PointerEvent) => {
+      const rect = el.getBoundingClientRect();
+      const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const ny = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        mx.set(Math.max(-1, Math.min(1, nx)));
+        my.set(Math.max(-1, Math.min(1, ny)));
+      });
+    };
+    const onLeave = () => {
+      mx.set(0);
+      my.set(0);
+    };
+    el.addEventListener("pointermove", onMove);
+    el.addEventListener("pointerleave", onLeave);
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener("pointermove", onMove);
+      el.removeEventListener("pointerleave", onLeave);
+    };
+  }, [mx, my]);
+
   const matchedPortrait =
     theme === "dark" ? portraitDarkAsset.url : portraitLightAsset.url;
+
 
   return (
     <section
@@ -38,17 +83,20 @@ export function Hero() {
       id="top"
       className="relative flex min-h-[100svh] items-end overflow-hidden pt-32 pb-16 md:pb-24"
     >
-      {/* Hero aurora gradient — sits behind everything, theme-aware */}
-      <div
+      {/* Hero aurora gradient — sits behind everything, theme-aware, drifts with cursor */}
+      <motion.div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
+        className="pointer-events-none absolute -inset-12 -z-10"
         style={{
+          x: auroraX,
+          y: auroraY,
           background:
             theme === "dark"
               ? "radial-gradient(60% 70% at 78% 55%, color-mix(in oklab, var(--accent) 22%, transparent) 0%, transparent 60%), radial-gradient(90% 80% at 50% 100%, color-mix(in oklab, var(--foreground) 6%, transparent) 0%, transparent 70%)"
               : "radial-gradient(55% 65% at 78% 50%, color-mix(in oklab, var(--accent) 14%, transparent) 0%, transparent 60%), radial-gradient(90% 80% at 50% 100%, color-mix(in oklab, var(--foreground) 4%, transparent) 0%, transparent 70%)",
         }}
       />
+
       {/* Bottom fade into the next section */}
       <div
         aria-hidden
@@ -131,11 +179,13 @@ export function Hero() {
           className="relative md:col-span-5"
         >
           <div className="relative aspect-[4/5]">
-            {/* Soft accent glow behind the head */}
-            <div
+            {/* Soft accent glow behind the head — follows the cursor */}
+            <motion.div
               aria-hidden
               className="absolute inset-0"
               style={{
+                x: glowX,
+                y: glowY,
                 background:
                   "radial-gradient(45% 40% at 50% 35%, color-mix(in oklab, var(--accent) 28%, transparent) 0%, transparent 70%)",
                 filter: "blur(28px)",
@@ -149,12 +199,13 @@ export function Hero() {
                 key={theme}
                 src={matchedPortrait}
                 alt="Juan Gaudino"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{ opacity: 0, scale: 1.04, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.6, ease }}
-                className="absolute inset-0 h-full w-full object-cover object-top"
+                transition={{ duration: 1.2, ease }}
                 style={{
+                  x: portraitX,
+                  y: portraitYParallax,
                   WebkitMaskImage:
                     "radial-gradient(ellipse 85% 95% at 50% 40%, #000 50%, rgba(0,0,0,0.85) 70%, rgba(0,0,0,0) 100%), linear-gradient(to bottom, #000 60%, rgba(0,0,0,0) 100%)",
                   maskImage:
@@ -164,6 +215,7 @@ export function Hero() {
                   WebkitMaskRepeat: "no-repeat",
                   maskRepeat: "no-repeat",
                 }}
+                className="absolute inset-0 h-full w-full object-cover object-top will-change-transform"
               />
             </AnimatePresence>
           </div>
@@ -172,3 +224,4 @@ export function Hero() {
     </section>
   );
 }
+
