@@ -1,15 +1,23 @@
-import { motion, useScroll, useTransform } from "motion/react";
+import { AnimatePresence, motion, useScroll, useTransform } from "motion/react";
 import { useRef } from "react";
 import { ArrowRight, Download } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
-import portraitAsset from "@/assets/juan-transparent.png.asset.json";
-const portrait = portraitAsset.url;
+import portraitLightAsset from "@/assets/juan-light.png.asset.json";
+import portraitDarkAsset from "@/assets/juan-dark.png.asset.json";
+import portraitCutoutAsset from "@/assets/juan-transparent.png.asset.json";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
+// Mask: soft radial that keeps the face crisp and dissolves the edges
+// (especially the bottom + outer rim) into the hero gradient.
+const PORTRAIT_MASK =
+  "radial-gradient(ellipse 78% 95% at 50% 38%, #000 42%, rgba(0,0,0,0.85) 60%, rgba(0,0,0,0) 92%)";
+const PORTRAIT_BOTTOM_FADE =
+  "linear-gradient(to bottom, #000 55%, rgba(0,0,0,0.6) 78%, rgba(0,0,0,0) 100%)";
+
 export function Hero() {
-  const { lang } = useApp();
+  const { lang, theme } = useApp();
   const t = dict[lang].hero;
   const ref = useRef<HTMLDivElement>(null);
 
@@ -21,12 +29,36 @@ export function Hero() {
   const textY = useTransform(scrollYProgress, [0, 1], [0, -40]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
+  const matchedPortrait =
+    theme === "dark" ? portraitDarkAsset.url : portraitLightAsset.url;
+
   return (
     <section
       ref={ref}
       id="top"
       className="relative flex min-h-[100svh] items-end overflow-hidden pt-32 pb-16 md:pb-24"
     >
+      {/* Hero aurora gradient — sits behind everything, theme-aware */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10"
+        style={{
+          background:
+            theme === "dark"
+              ? "radial-gradient(60% 70% at 78% 55%, color-mix(in oklab, var(--accent) 22%, transparent) 0%, transparent 60%), radial-gradient(90% 80% at 50% 100%, color-mix(in oklab, var(--foreground) 6%, transparent) 0%, transparent 70%)"
+              : "radial-gradient(55% 65% at 78% 50%, color-mix(in oklab, var(--accent) 14%, transparent) 0%, transparent 60%), radial-gradient(90% 80% at 50% 100%, color-mix(in oklab, var(--foreground) 4%, transparent) 0%, transparent 70%)",
+        }}
+      />
+      {/* Bottom fade into the next section */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-32 -z-10"
+        style={{
+          background:
+            "linear-gradient(to bottom, transparent, var(--background))",
+        }}
+      />
+
       <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-12 px-6 md:grid-cols-12 md:px-10">
         <motion.div style={{ y: textY, opacity }} className="md:col-span-7">
           <motion.p
@@ -99,28 +131,54 @@ export function Hero() {
           className="relative md:col-span-5"
         >
           <div className="relative aspect-[4/5]">
-            {/* Ambient halo that bleeds into the page background */}
+            {/* Soft accent glow behind the head */}
             <div
               aria-hidden
-              className="absolute inset-0 -z-10"
+              className="absolute inset-0"
               style={{
                 background:
-                  "radial-gradient(60% 55% at 50% 45%, color-mix(in oklab, var(--foreground) 14%, transparent) 0%, transparent 70%)",
-                filter: "blur(20px)",
+                  "radial-gradient(45% 40% at 50% 35%, color-mix(in oklab, var(--accent) 28%, transparent) 0%, transparent 70%)",
+                filter: "blur(28px)",
               }}
             />
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 -z-10"
-              style={{
-                background:
-                  "linear-gradient(to bottom, transparent, var(--background))",
-              }}
-            />
+
+            {/* Matched-bg portrait, masked so its edges dissolve into the hero gradient.
+                Cross-fades when the user toggles theme. */}
+            <AnimatePresence mode="sync">
+              <motion.img
+                key={theme}
+                src={matchedPortrait}
+                alt="Juan Gaudino"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6, ease }}
+                className="absolute inset-0 h-full w-full object-cover object-top"
+                style={{
+                  WebkitMaskImage: `${PORTRAIT_MASK}, ${PORTRAIT_BOTTOM_FADE}`,
+                  maskImage: `${PORTRAIT_MASK}, ${PORTRAIT_BOTTOM_FADE}`,
+                  WebkitMaskComposite: "source-in",
+                  maskComposite: "intersect",
+                  WebkitMaskRepeat: "no-repeat",
+                  maskRepeat: "no-repeat",
+                }}
+              />
+            </AnimatePresence>
+
+            {/* Crisp transparent cutout on top — restores sharp facial detail
+                without re-introducing a hard rectangular edge. */}
             <img
-              src={portrait}
-              alt="Juan Gaudino"
-              className="relative h-full w-full object-contain object-bottom drop-shadow-2xl"
+              src={portraitCutoutAsset.url}
+              alt=""
+              aria-hidden
+              className="absolute inset-0 h-full w-full object-contain object-bottom"
+              style={{
+                WebkitMaskImage:
+                  "radial-gradient(ellipse 70% 60% at 50% 35%, #000 55%, rgba(0,0,0,0) 100%)",
+                maskImage:
+                  "radial-gradient(ellipse 70% 60% at 50% 35%, #000 55%, rgba(0,0,0,0) 100%)",
+                filter: "drop-shadow(0 30px 60px rgba(0,0,0,0.25))",
+              }}
             />
           </div>
         </motion.div>
