@@ -3,7 +3,7 @@ import { useRef } from "react";
 import { ArrowRight, Download } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
-import portraitAsset from "@/assets/juan-gaudino.jpg.asset.json";
+import portraitAsset from "@/assets/juan-transparent.png.asset.json";
 const portrait = portraitAsset.url;
 
 const ease = [0.16, 1, 0.3, 1] as const;
