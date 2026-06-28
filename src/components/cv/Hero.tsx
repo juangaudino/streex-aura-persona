@@ -179,11 +179,13 @@ export function Hero() {
           className="relative md:col-span-5"
         >
           <div className="relative aspect-[4/5]">
-            {/* Soft accent glow behind the head */}
-            <div
+            {/* Soft accent glow behind the head — follows the cursor */}
+            <motion.div
               aria-hidden
               className="absolute inset-0"
               style={{
+                x: glowX,
+                y: glowY,
                 background:
                   "radial-gradient(45% 40% at 50% 35%, color-mix(in oklab, var(--accent) 28%, transparent) 0%, transparent 70%)",
                 filter: "blur(28px)",
@@ -197,12 +199,13 @@ export function Hero() {
                 key={theme}
                 src={matchedPortrait}
                 alt="Juan Gaudino"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{ opacity: 0, scale: 1.04, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.6, ease }}
-                className="absolute inset-0 h-full w-full object-cover object-top"
+                transition={{ duration: 1.2, ease }}
                 style={{
+                  x: portraitX,
+                  y: portraitYParallax,
                   WebkitMaskImage:
                     "radial-gradient(ellipse 85% 95% at 50% 40%, #000 50%, rgba(0,0,0,0.85) 70%, rgba(0,0,0,0) 100%), linear-gradient(to bottom, #000 60%, rgba(0,0,0,0) 100%)",
                   maskImage:
@@ -212,6 +215,7 @@ export function Hero() {
                   WebkitMaskRepeat: "no-repeat",
                   maskRepeat: "no-repeat",
                 }}
+                className="absolute inset-0 h-full w-full object-cover object-top will-change-transform"
               />
             </AnimatePresence>
           </div>
@@ -220,3 +224,4 @@ export function Hero() {
     </section>
   );
 }
+
