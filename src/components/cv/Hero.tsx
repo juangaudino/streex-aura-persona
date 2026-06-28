@@ -155,8 +155,10 @@ export function Hero() {
                 transition={{ duration: 0.6, ease }}
                 className="absolute inset-0 h-full w-full object-cover object-top"
                 style={{
-                  WebkitMaskImage: `${PORTRAIT_MASK}, ${PORTRAIT_BOTTOM_FADE}`,
-                  maskImage: `${PORTRAIT_MASK}, ${PORTRAIT_BOTTOM_FADE}`,
+                  WebkitMaskImage:
+                    "radial-gradient(ellipse 85% 95% at 50% 40%, #000 50%, rgba(0,0,0,0.85) 70%, rgba(0,0,0,0) 100%), linear-gradient(to bottom, #000 60%, rgba(0,0,0,0) 100%)",
+                  maskImage:
+                    "radial-gradient(ellipse 85% 95% at 50% 40%, #000 50%, rgba(0,0,0,0.85) 70%, rgba(0,0,0,0) 100%), linear-gradient(to bottom, #000 60%, rgba(0,0,0,0) 100%)",
                   WebkitMaskComposite: "source-in",
                   maskComposite: "intersect",
                   WebkitMaskRepeat: "no-repeat",
@@ -164,22 +166,6 @@ export function Hero() {
                 }}
               />
             </AnimatePresence>
-
-            {/* Crisp transparent cutout on top — restores sharp facial detail
-                without re-introducing a hard rectangular edge. */}
-            <img
-              src={portraitCutoutAsset.url}
-              alt=""
-              aria-hidden
-              className="absolute inset-0 h-full w-full object-contain object-bottom"
-              style={{
-                WebkitMaskImage:
-                  "radial-gradient(ellipse 70% 60% at 50% 35%, #000 55%, rgba(0,0,0,0) 100%)",
-                maskImage:
-                  "radial-gradient(ellipse 70% 60% at 50% 35%, #000 55%, rgba(0,0,0,0) 100%)",
-                filter: "drop-shadow(0 30px 60px rgba(0,0,0,0.25))",
-              }}
-            />
           </div>
         </motion.div>
       </div>
