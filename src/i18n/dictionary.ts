@@ -48,16 +48,25 @@ export const dict = {
           summary:
             "Diseñé y ejecuté planes estratégicos OOH/DOOH para clientes en USA, LATAM y Europa. Expandí cobertura a 4+ nuevos mercados LATAM y entregué reportes analíticos y proyecciones económicas para soportar decisiones ejecutivas.",
         },
+      ],
+    },
+    education: {
+      eyebrow: "Formación",
+      title: "Estudios en paralelo.",
+      caption: "Formación académica y continua que corre en paralelo a la carrera profesional.",
+      items: [
         {
-          company: "Weber State University · Ogden, Utah",
-          role: "Entrepreneurship Certificate",
+          school: "Weber State University",
+          place: "Ogden, Utah",
+          degree: "Entrepreneurship Certificate",
           period: "2026",
           summary:
-            "Formación complementaria orientada a programmatic advertising, digital analytics y emprendimiento en el mercado estadounidense.",
+            "Formación continua orientada a programmatic advertising, digital analytics y emprendimiento en el mercado estadounidense.",
         },
         {
-          company: "Universidad Dr. Rafael Belloso Chacín (URBE) · Venezuela",
-          role: "Licenciatura en Marketing y Publicidad",
+          school: "Universidad Dr. Rafael Belloso Chacín (URBE)",
+          place: "Venezuela",
+          degree: "Licenciatura en Marketing y Publicidad",
           period: "2006",
           summary: "Base académica en marketing, publicidad y estrategia de marca.",
         },
