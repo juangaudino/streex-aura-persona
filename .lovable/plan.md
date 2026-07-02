@@ -1,56 +1,64 @@
-## Objetivo
 
-Un solo timeline con **dos carriles paralelos** compartiendo el mismo eje temporal: **Experiencia** a un lado, **Educación** al otro. Así se ve claramente cuándo estudiaste y trabajaste al mismo tiempo.
+# Plan: Panel Admin para editar el CV
 
-## Cambios
+Activo **Lovable Cloud** (base de datos + auth + IA) y muevo todo el contenido del sitio desde `src/i18n/dictionary.ts` a la base de datos, con un panel `/admin` protegido por Google sign-in + rol admin.
 
-### 1. Volver a fusionar los datos en `src/i18n/dictionary.ts`
-- Eliminar la sección `education` separada que agregué.
-- Cada item del timeline tendrá un campo extra `kind: "work" | "study"` y un `year` numérico (inicio) para poder ordenarlo cronológicamente descendente.
-- Items resultantes (ES/EN):
-  - 2026 · study · Weber State University — Entrepreneurship Certificate
-  - 2021–2023 · work · LATCOM — Media Planning Coordinator
-  - 2015–2021 · work · LATCOM — Strategic Development Analyst
-  - 2006 · study · URBE — Licenciatura en Marketing y Publicidad
+## 1. Backend (Lovable Cloud)
 
-### 2. Rediseñar `src/components/cv/Experience.tsx` como timeline de dos carriles
+**Auth**: Google OAuth (managed) + email/password como fallback.
 
-Layout desktop (≥ md):
+**Tablas** (todas con RLS: lectura pública, escritura solo admin):
 
-```text
-     EXPERIENCIA              │              EDUCACIÓN
-                              │
-                              ●  2026
-                              │  Weber State — Entrepreneurship
-   2021–2023  ●               │
-   LATCOM · Coordinator       │
-                              │
-   2015–2021  ●               │
-   LATCOM · Analyst           │
-                              │
-                              ●  2006
-                              │  URBE — Marketing & Advertising
-```
+- `profile_settings` (singleton) — hero, about, contact, foto
+- `timeline_items` — id, kind (`work`|`study`), title_es, title_en, org, location, start_date, end_date (nullable = "actual"), description_es, description_en, bullets_es[], bullets_en[], sort_order
+- `projects` — id, title, description_es, description_en, tags[], link, image_url, sort_order
+- `skills` — id, name, category, sort_order
+- `user_roles` + enum `app_role` + función `has_role()` (patrón seguro estándar)
 
-- La línea central sigue siendo el eje de tiempo con la animación de scroll (spring + glow viajero) que ya construimos.
-- Cada item se ancla al lado que le corresponde según `kind`: `work` → izquierda, `study` → derecha. Los headers "Experiencia" / "Educación" quedan fijos arriba del carril como etiquetas de columna.
-- Los nodos en el eje mantienen el hover con scale + halo accent; el item del lado opuesto que caiga en el mismo rango temporal se resalta sutilmente (opacidad ligeramente elevada) para reforzar la idea de simultaneidad.
+**Policies**:
+- `SELECT` público (anon + authenticated) en todo lo de contenido
+- `INSERT/UPDATE/DELETE` solo si `has_role(auth.uid(), 'admin')`
+- `user_roles`: solo authenticated puede leer los propios; nadie escribe desde el cliente (se asigna vía SQL/función)
 
-Layout mobile (< md):
-- Un solo carril vertical a la izquierda (como está hoy), pero cada item lleva un chip pequeño "Trabajo" / "Estudio" en color accent para distinguir el tipo. No se puede mostrar "paralelo" real con el ancho mobile sin sacrificar legibilidad.
+**Bootstrap admin**: te asigno el rol `admin` a tu user_id la primera vez que inicies sesión (via SQL insert después de tu primer login con Google).
 
-### 3. Deshacer la sección Education separada
-- Borrar `src/components/cv/Education.tsx`.
-- Quitar el import y el `<Education />` de `src/routes/index.tsx`.
-- Sacar la entrada `education` del `Nav` si la agregué (revisar al implementar).
+## 2. Traducción con IA
 
-### 4. Header de la sección
-- Mantener el `SectionHeader` actual con `t.title` ("De LATAM a los Estados Unidos" / "From LATAM to the United States").
-- Sobre el timeline, agregar dos labels de columna ("Experiencia" | "Educación") en desktop, alineados a los carriles.
+Server function `translate-to-english` usando **Lovable AI Gateway** (`google/gemini-3-flash-preview`, gratis en el free tier). En cada campo bilingüe del admin habrá un botón "✨ Traducir a EN" que rellena el campo EN a partir del ES; el resultado queda editable.
+
+## 3. Frontend
+
+**Rutas nuevas**:
+- `/auth` — login público (Google + email/password)
+- `/_authenticated/admin` — dashboard con tabs: Perfil · Timeline · Proyectos · Skills
+
+**UI admin** (shadcn + estilo Apple existente):
+- Cada tab con lista + drawer/dialog para crear/editar
+- Drag handle para reordenar (dnd-kit) → actualiza `sort_order`
+- Toggle work/study en timeline items, date pickers, chip para "presente"
+- Preview link al home para ver los cambios en vivo
+
+**Migración de datos**: seed migration que inserta todo el contenido actual de `dictionary.ts` en las tablas, así arrancás con tu CV real ya cargado.
+
+**Refactor del sitio público**:
+- `Hero`, `About`, `Experience`, `Projects`, `Skills`, `Contact` pasan a leer con TanStack Query (`useSuspenseQuery`) desde server functions públicas (publishable key + policy anon SELECT)
+- El toggle ES/EN sigue funcionando; simplemente elige la columna `_es` o `_en`
+- `dictionary.ts` queda solo con labels de UI (nav, botones, form)
+
+## 4. Orden de implementación
+
+1. Activar Cloud + crear tablas, RLS, seed con tu CV actual
+2. Configurar Google OAuth + user_roles + asignarte admin
+3. Refactorizar componentes públicos para leer de la DB
+4. Construir `/auth` y `/_authenticated/admin` con CRUD por sección
+5. Server function de traducción IA + botón en el form
+6. Reordenamiento drag & drop
 
 ## Notas técnicas
 
-- Se mantiene `useScroll` + `useSpring` para la línea de progreso y el glow viajero que ya funciona.
-- El hover sigue con el patrón actual (`onMouseEnter`/`Leave`, dimming del resto, scale del nodo, subrayado animado del rol).
-- Grid desktop: `grid-cols-[1fr_auto_1fr]` con la línea central como columna del medio (ancho fijo), y cada item usa `col-start-1` o `col-start-3` según `kind`.
-- Sin nuevas dependencias.
+- Foto del hero: subida a Storage bucket público `assets/` (reemplaza las URLs hardcoded del CDN)
+- Bullets se guardan como `text[]` en Postgres
+- `end_date` null = "Presente/Actual" en la UI
+- Todo el admin en un solo idioma de UI (español, ya que sos vos el único que lo usa)
+
+¿Le doy?

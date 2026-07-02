@@ -8,6 +8,7 @@ export const dict = {
       projects: "Campañas",
       contact: "Contacto",
       download: "Descargar CV",
+      admin: "Admin",
     },
     hero: {
       eyebrow: "CV · 2026",
@@ -116,6 +117,7 @@ export const dict = {
       projects: "Campaigns",
       contact: "Contact",
       download: "Download CV",
+      admin: "Admin",
     },
     hero: {
       eyebrow: "CV · 2026",
@@ -178,6 +180,28 @@ export const dict = {
           year: 2006,
           company: "Universidad Dr. Rafael Belloso Chacín (URBE) · Venezuela",
           role: "Bachelor's Degree in Marketing & Advertising",
+          period: "2006",
+          summary: "Academic foundation in marketing, advertising and brand strategy.",
+        },
+      ],
+    },
+    education: {
+      eyebrow: "Education",
+      title: "Studies, running in parallel.",
+      caption: "Academic and continuing education running alongside the professional path.",
+      items: [
+        {
+          school: "Weber State University",
+          place: "Ogden, Utah",
+          degree: "Entrepreneurship Certificate",
+          period: "2026",
+          summary:
+            "Continuing education focused on programmatic advertising, digital analytics and entrepreneurship in the U.S. market.",
+        },
+        {
+          school: "Universidad Dr. Rafael Belloso Chacín (URBE)",
+          place: "Venezuela",
+          degree: "Bachelor's Degree in Marketing & Advertising",
           period: "2006",
           summary: "Academic foundation in marketing, advertising and brand strategy.",
         },

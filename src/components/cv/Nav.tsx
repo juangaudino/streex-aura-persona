@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { Moon, Sun, Download } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Moon, Sun, Download, Lock } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
+import { useAuth } from "@/hooks/use-auth";
 import { dict } from "@/i18n/dictionary";
 
 export function Nav() {
   const { theme, toggleTheme, lang, toggleLang } = useApp();
+  const { isAdmin } = useAuth();
   const t = dict[lang].nav;
   const [scrolled, setScrolled] = useState(false);
 
@@ -65,6 +68,16 @@ export function Nav() {
           >
             {theme === "light" ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
           </button>
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className="hidden items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground sm:inline-flex"
+              aria-label="Admin"
+            >
+              <Lock className="h-3 w-3" />
+              {t.admin}
+            </Link>
+          )}
           <a
             href="/cv.pdf"
             download
