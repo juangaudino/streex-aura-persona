@@ -5,6 +5,7 @@ import { Nav } from "@/components/cv/Nav";
 import { Hero } from "@/components/cv/Hero";
 import { About } from "@/components/cv/About";
 import { Experience } from "@/components/cv/Experience";
+import { Education } from "@/components/cv/Education";
 import { Projects } from "@/components/cv/Projects";
 import { Skills } from "@/components/cv/Skills";
 import { Contact } from "@/components/cv/Contact";
