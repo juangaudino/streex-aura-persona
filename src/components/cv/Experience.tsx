@@ -1,5 +1,6 @@
 import { motion, useScroll, useSpring, useTransform } from "motion/react";
 import { useRef, useState } from "react";
+import { Briefcase, GraduationCap } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
 import { Reveal, SectionHeader } from "./Reveal";
@@ -20,47 +21,61 @@ export function Experience() {
     useTransform(scrollYProgress, [0, 1], [0, 1]),
     { stiffness: 80, damping: 24, mass: 0.4 },
   );
+  const glowTop = useTransform(lineScale, (v) => `${v * 100}%`);
 
   return (
     <section id="experience" className="bg-surface px-6 py-32 md:px-10 md:py-48">
       <div className="mx-auto max-w-7xl">
         <SectionHeader eyebrow={t.eyebrow} title={t.title} />
 
+        {/* Lane labels (desktop only) */}
+        <div className="mx-auto hidden max-w-5xl grid-cols-[1fr_auto_1fr] items-end gap-8 pb-8 md:grid">
+          <div className="flex items-center justify-end gap-2 text-right">
+            <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-eyebrow">{t.laneWork}</span>
+          </div>
+          <div className="w-3" />
+          <div className="flex items-center gap-2">
+            <span className="text-eyebrow">{t.laneStudy}</span>
+            <GraduationCap className="h-3.5 w-3.5 text-muted-foreground" />
+          </div>
+        </div>
+
         <div
           ref={ref}
-          className="relative mx-auto max-w-4xl"
+          className="relative mx-auto max-w-5xl"
           onMouseLeave={() => setHovered(null)}
         >
-          {/* Track */}
+          {/* Axis track (mobile: left, desktop: center) */}
           <div className="absolute left-2 top-0 bottom-0 w-px bg-border md:left-1/2 md:-translate-x-1/2" />
-          {/* Progress line */}
           <motion.div
             style={{ scaleY: lineScale, transformOrigin: "top" }}
             className="absolute left-2 top-0 bottom-0 w-px bg-foreground md:left-1/2 md:-translate-x-1/2"
           />
-          {/* Traveling glow */}
           <motion.div
             aria-hidden
-            style={{ top: useTransform(lineScale, (v) => `${v * 100}%`) }}
+            style={{ top: glowTop }}
             className="pointer-events-none absolute left-2 -translate-x-1/2 -translate-y-1/2 md:left-1/2"
           >
             <div className="h-16 w-16 rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--accent)_45%,transparent)_0%,transparent_70%)] blur-md" />
           </motion.div>
 
-          <div className="space-y-16 md:space-y-24">
+          <div className="space-y-14 md:space-y-20">
             {t.items.map((item, i) => {
+              const isStudy = item.kind === "study";
               const isHovered = hovered === i;
               const dim = hovered !== null && !isHovered;
-              const leftSide = i % 2 === 0;
+              const Icon = isStudy ? GraduationCap : Briefcase;
+
               return (
                 <Reveal key={item.company + i} delay={0.05}>
                   <motion.div
                     onMouseEnter={() => setHovered(i)}
-                    animate={{ opacity: dim ? 0.35 : 1 }}
+                    animate={{ opacity: dim ? 0.3 : 1 }}
                     transition={{ duration: 0.4, ease }}
-                    className="group relative grid grid-cols-[auto_1fr] gap-6 md:grid-cols-2 md:gap-12"
+                    className="group relative grid grid-cols-[auto_1fr] gap-6 md:grid-cols-[1fr_auto_1fr] md:gap-8"
                   >
-                    {/* Node */}
+                    {/* Node on the axis */}
                     <div className="absolute left-2 top-2 -translate-x-1/2 md:left-1/2">
                       <motion.div
                         animate={{
@@ -74,17 +89,37 @@ export function Experience() {
                       />
                     </div>
 
+                    {/* Content card — mobile: always right of axis; desktop: side by kind */}
                     <motion.div
-                      animate={{ x: isHovered ? (leftSide ? -6 : 6) : 0 }}
+                      animate={{ x: isHovered ? (isStudy ? 6 : -6) : 0 }}
                       transition={{ duration: 0.4, ease }}
-                      className={`col-start-2 md:col-start-1 ${
-                        leftSide ? "md:pr-12 md:text-right" : "md:col-start-2 md:pl-12"
-                      }`}
+                      className={
+                        isStudy
+                          ? "col-start-2 md:col-start-3 md:pl-10"
+                          : "col-start-2 md:col-start-1 md:pr-10 md:text-right"
+                      }
                     >
-                      <p className="text-xs tabular-nums text-muted-foreground">
-                        {item.period}
-                      </p>
-                      <h3 className="text-display mt-2 text-2xl md:text-3xl">
+                      <div
+                        className={`flex items-center gap-2 ${
+                          isStudy ? "" : "md:justify-end"
+                        }`}
+                      >
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] uppercase tracking-[0.14em] ${
+                            isStudy
+                              ? "border-accent/40 text-accent"
+                              : "border-border text-muted-foreground"
+                          }`}
+                        >
+                          <Icon className="h-3 w-3" />
+                          {isStudy ? t.tagStudy : t.tagWork}
+                        </span>
+                        <span className="text-xs tabular-nums text-muted-foreground">
+                          {item.period}
+                        </span>
+                      </div>
+
+                      <h3 className="text-display mt-3 text-2xl md:text-3xl">
                         <span className="relative inline-block">
                           {item.role}
                           <motion.span
@@ -93,7 +128,7 @@ export function Experience() {
                             animate={{ scaleX: isHovered ? 1 : 0 }}
                             transition={{ duration: 0.5, ease }}
                             style={{
-                              transformOrigin: leftSide ? "right" : "left",
+                              transformOrigin: isStudy ? "left" : "right",
                             }}
                             className="absolute -bottom-1 left-0 right-0 h-px bg-foreground/60"
                           />
