@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
-import { Moon, Sun, Download } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Moon, Sun, Download, Lock } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
+import { useAuth } from "@/hooks/use-auth";
 import { dict } from "@/i18n/dictionary";
 
 export function Nav() {
