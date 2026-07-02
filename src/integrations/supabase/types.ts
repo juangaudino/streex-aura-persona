@@ -14,16 +14,281 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profile_settings: {
+        Row: {
+          about_body_en: string[]
+          about_body_es: string[]
+          about_eyebrow_en: string
+          about_eyebrow_es: string
+          about_stats: Json
+          about_title_en: string
+          about_title_es: string
+          contact_eyebrow_en: string
+          contact_eyebrow_es: string
+          contact_sub_en: string
+          contact_sub_es: string
+          contact_title_en: string
+          contact_title_es: string
+          cv_url: string
+          email: string
+          hero_eyebrow_en: string
+          hero_eyebrow_es: string
+          hero_location_en: string
+          hero_location_es: string
+          hero_role_en: string
+          hero_role_es: string
+          hero_title_en: string[]
+          hero_title_es: string[]
+          id: string
+          linkedin: string
+          location: string
+          name: string
+          phone: string
+          photo_dark_url: string
+          photo_light_url: string
+          singleton: boolean
+          updated_at: string
+        }
+        Insert: {
+          about_body_en?: string[]
+          about_body_es?: string[]
+          about_eyebrow_en?: string
+          about_eyebrow_es?: string
+          about_stats?: Json
+          about_title_en?: string
+          about_title_es?: string
+          contact_eyebrow_en?: string
+          contact_eyebrow_es?: string
+          contact_sub_en?: string
+          contact_sub_es?: string
+          contact_title_en?: string
+          contact_title_es?: string
+          cv_url?: string
+          email?: string
+          hero_eyebrow_en?: string
+          hero_eyebrow_es?: string
+          hero_location_en?: string
+          hero_location_es?: string
+          hero_role_en?: string
+          hero_role_es?: string
+          hero_title_en?: string[]
+          hero_title_es?: string[]
+          id?: string
+          linkedin?: string
+          location?: string
+          name?: string
+          phone?: string
+          photo_dark_url?: string
+          photo_light_url?: string
+          singleton?: boolean
+          updated_at?: string
+        }
+        Update: {
+          about_body_en?: string[]
+          about_body_es?: string[]
+          about_eyebrow_en?: string
+          about_eyebrow_es?: string
+          about_stats?: Json
+          about_title_en?: string
+          about_title_es?: string
+          contact_eyebrow_en?: string
+          contact_eyebrow_es?: string
+          contact_sub_en?: string
+          contact_sub_es?: string
+          contact_title_en?: string
+          contact_title_es?: string
+          cv_url?: string
+          email?: string
+          hero_eyebrow_en?: string
+          hero_eyebrow_es?: string
+          hero_location_en?: string
+          hero_location_es?: string
+          hero_role_en?: string
+          hero_role_es?: string
+          hero_title_en?: string[]
+          hero_title_es?: string[]
+          id?: string
+          linkedin?: string
+          location?: string
+          name?: string
+          phone?: string
+          photo_dark_url?: string
+          photo_light_url?: string
+          singleton?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          created_at: string
+          desc_en: string
+          desc_es: string
+          id: string
+          image_url: string
+          link: string
+          name_en: string
+          name_es: string
+          sort_order: number
+          stack: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          desc_en?: string
+          desc_es?: string
+          id?: string
+          image_url?: string
+          link?: string
+          name_en?: string
+          name_es?: string
+          sort_order?: number
+          stack?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          desc_en?: string
+          desc_es?: string
+          id?: string
+          image_url?: string
+          link?: string
+          name_en?: string
+          name_es?: string
+          sort_order?: number
+          stack?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      skills: {
+        Row: {
+          category: string
+          category_label_en: string
+          category_label_es: string
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          category?: string
+          category_label_en?: string
+          category_label_es?: string
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          category?: string
+          category_label_en?: string
+          category_label_es?: string
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      timeline_items: {
+        Row: {
+          bullets_en: string[]
+          bullets_es: string[]
+          created_at: string
+          end_date: string | null
+          id: string
+          kind: Database["public"]["Enums"]["timeline_kind"]
+          location: string
+          org: string
+          period_label_en: string
+          period_label_es: string
+          sort_order: number
+          start_date: string | null
+          summary_en: string
+          summary_es: string
+          title_en: string
+          title_es: string
+          updated_at: string
+        }
+        Insert: {
+          bullets_en?: string[]
+          bullets_es?: string[]
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          kind: Database["public"]["Enums"]["timeline_kind"]
+          location?: string
+          org?: string
+          period_label_en?: string
+          period_label_es?: string
+          sort_order?: number
+          start_date?: string | null
+          summary_en?: string
+          summary_es?: string
+          title_en?: string
+          title_es?: string
+          updated_at?: string
+        }
+        Update: {
+          bullets_en?: string[]
+          bullets_es?: string[]
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["timeline_kind"]
+          location?: string
+          org?: string
+          period_label_en?: string
+          period_label_es?: string
+          sort_order?: number
+          start_date?: string | null
+          summary_en?: string
+          summary_es?: string
+          title_en?: string
+          title_es?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_admin: { Args: never; Returns: boolean }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin"
+      timeline_kind: "work" | "study"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +415,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin"],
+      timeline_kind: ["work", "study"],
+    },
   },
 } as const
