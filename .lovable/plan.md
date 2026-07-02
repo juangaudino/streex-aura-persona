@@ -1,53 +1,56 @@
-Voy a reemplazar todos los placeholders con tu contenido real del CV, usar tu foto de perfil del PDF, y dejar el PDF disponible para descarga.
+## Objetivo
+
+Un solo timeline con **dos carriles paralelos** compartiendo el mismo eje temporal: **Experiencia** a un lado, **Educación** al otro. Así se ve claramente cuándo estudiaste y trabajaste al mismo tiempo.
 
 ## Cambios
 
-**1. Contenido bilingüe (ES/EN) en `src/i18n/dictionary.ts`**
-- Nombre: **Juan Gaudino**
-- Rol: Media Planner · OOH & DOOH Strategist (ES: Planificador de Medios · Estratega OOH & DOOH)
-- Ubicación: Salt Lake City, UT · Available for U.S. market opportunities
-- Hero título corto y potente:
-  - EN: "I plan media that moves markets."
-  - ES: "Planifico medios que mueven mercados."
-- About: bio adaptada de tu "About me" (15+ años, LATAM, ahora en Utah expandiéndote a programmatic + digital analytics, enfoque data-driven)
-- Stats: `15+` años, `4+` mercados LATAM abiertos, `10+` planners liderados
-- Experiencia:
-  - LATCOM — Media Planning Coordinator (Buenos Aires, 2021–2023)
-  - LATCOM — Strategic Development Analyst (USA/LATAM/Europa, 2015–2021)
-  - (Solo tu CV muestra estos dos; mantengo solo los reales)
-- Educación añadida como tercera tarjeta tipo "milestone" al final del timeline:
-  - Entrepreneurship Certificate — Weber State University, 2026
-  - Bachelor in Marketing & Advertising — URBE, 2006
-- Skills (basados en tu perfil real):
-  - **Strategy**: Media Planning, OOH/DOOH Strategy, Market Research, Vendor Negotiation, Regional Expansion
-  - **Analytics**: Programmatic Advertising, Digital Analytics, Reporting, Economic Projections, A/B Insights
-  - **Leadership**: Team Leadership (10+), Client Relations, Cross-market Coordination, Vendor Partnerships, Executive Reporting
-- Contact:
-  - Email: juangaudino@gmail.com
-  - Phone: +1 801 651 8187
-  - LinkedIn: placeholder (te pediré la URL si la quieres específica)
-  - Quito GitHub (no aplica a tu perfil) y añado **LinkedIn + Email + Phone**
+### 1. Volver a fusionar los datos en `src/i18n/dictionary.ts`
+- Eliminar la sección `education` separada que agregué.
+- Cada item del timeline tendrá un campo extra `kind: "work" | "study"` y un `year` numérico (inicio) para poder ordenarlo cronológicamente descendente.
+- Items resultantes (ES/EN):
+  - 2026 · study · Weber State University — Entrepreneurship Certificate
+  - 2021–2023 · work · LATCOM — Media Planning Coordinator
+  - 2015–2021 · work · LATCOM — Strategic Development Analyst
+  - 2006 · study · URBE — Licenciatura en Marketing y Publicidad
 
-**2. Sección "Proyectos destacados" → "Selected campaigns / Campañas destacadas"**
-Tu CV no menciona proyectos puntuales por nombre, así que la reformulo a **mercados / verticales en los que has trabajado** como cards visuales (Transit, Malls, Airports, Digital Billboards · multi-país LATAM). Si prefieres que la quite del todo, dímelo.
+### 2. Rediseñar `src/components/cv/Experience.tsx` como timeline de dos carriles
 
-**3. Foto del hero**
-Reemplazo el placeholder generado por **tu foto real** extraída del PDF (`img_p1_5.jpg`). La subo como CDN asset (lovable-assets) para no inflar el repo.
+Layout desktop (≥ md):
 
-**4. PDF descargable**
-Copio tu PDF a `public/cv.pdf` para que el botón "Descargar CV" entregue tu CV real.
+```text
+     EXPERIENCIA              │              EDUCACIÓN
+                              │
+                              ●  2026
+                              │  Weber State — Entrepreneurship
+   2021–2023  ●               │
+   LATCOM · Coordinator       │
+                              │
+   2015–2021  ●               │
+   LATCOM · Analyst           │
+                              │
+                              ●  2006
+                              │  URBE — Marketing & Advertising
+```
 
-**5. SEO**
-- Título: "Juan Gaudino — Media Planner & OOH/DOOH Strategist"
-- Description: usa tu about me resumido
-- og:title / og:description igual
+- La línea central sigue siendo el eje de tiempo con la animación de scroll (spring + glow viajero) que ya construimos.
+- Cada item se ancla al lado que le corresponde según `kind`: `work` → izquierda, `study` → derecha. Los headers "Experiencia" / "Educación" quedan fijos arriba del carril como etiquetas de columna.
+- Los nodos en el eje mantienen el hover con scale + halo accent; el item del lado opuesto que caiga en el mismo rango temporal se resalta sutilmente (opacidad ligeramente elevada) para reforzar la idea de simultaneidad.
 
-**6. Footer**
-"© 2026 — Juan Gaudino. Salt Lake City, UT."
+Layout mobile (< md):
+- Un solo carril vertical a la izquierda (como está hoy), pero cada item lleva un chip pequeño "Trabajo" / "Estudio" en color accent para distinguir el tipo. No se puede mostrar "paralelo" real con el ancho mobile sin sacrificar legibilidad.
 
-## Lo que NO toco
-- Diseño, animaciones, light/dark toggle, ES/EN toggle, layout — todo se queda como está y aprobaste.
+### 3. Deshacer la sección Education separada
+- Borrar `src/components/cv/Education.tsx`.
+- Quitar el import y el `<Education />` de `src/routes/index.tsx`.
+- Sacar la entrada `education` del `Nav` si la agregué (revisar al implementar).
 
-## Preguntas opcionales (puedo asumir defaults si no respondes)
-- URL de LinkedIn — si no me la das, uso `linkedin.com/in/juangaudino` como placeholder.
-- ¿Mantengo o quito la sección "Selected campaigns"? Por defecto la mantengo reformulada.
+### 4. Header de la sección
+- Mantener el `SectionHeader` actual con `t.title` ("De LATAM a los Estados Unidos" / "From LATAM to the United States").
+- Sobre el timeline, agregar dos labels de columna ("Experiencia" | "Educación") en desktop, alineados a los carriles.
+
+## Notas técnicas
+
+- Se mantiene `useScroll` + `useSpring` para la línea de progreso y el glow viajero que ya funciona.
+- El hover sigue con el patrón actual (`onMouseEnter`/`Leave`, dimming del resto, scale del nodo, subrayado animado del rol).
+- Grid desktop: `grid-cols-[1fr_auto_1fr]` con la línea central como columna del medio (ancho fijo), y cada item usa `col-start-1` o `col-start-3` según `kind`.
+- Sin nuevas dependencias.
