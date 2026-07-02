@@ -8,6 +8,7 @@ import { dict } from "@/i18n/dictionary";
 
 export function Nav() {
   const { theme, toggleTheme, lang, toggleLang } = useApp();
+  const { isAdmin } = useAuth();
   const t = dict[lang].nav;
   const [scrolled, setScrolled] = useState(false);
 
