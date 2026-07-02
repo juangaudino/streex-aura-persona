@@ -8,6 +8,7 @@ export const dict = {
       projects: "Campañas",
       contact: "Contacto",
       download: "Descargar CV",
+      admin: "Admin",
     },
     hero: {
       eyebrow: "CV · 2026",
@@ -116,6 +117,7 @@ export const dict = {
       projects: "Campaigns",
       contact: "Contact",
       download: "Download CV",
+      admin: "Admin",
     },
     hero: {
       eyebrow: "CV · 2026",
@@ -141,8 +143,23 @@ export const dict = {
     experience: {
       eyebrow: "Journey",
       title: "From LATAM to the United States.",
+      laneWork: "Experience",
+      laneStudy: "Education",
+      tagWork: "Work",
+      tagStudy: "Study",
       items: [
         {
+          kind: "study" as const,
+          year: 2026,
+          company: "Weber State University · Ogden, Utah",
+          role: "Entrepreneurship Certificate",
+          period: "2026",
+          summary:
+            "Continuing education focused on programmatic advertising, digital analytics and entrepreneurship in the U.S. market.",
+        },
+        {
+          kind: "work" as const,
+          year: 2021,
           company: "LATCOM · Buenos Aires, Argentina",
           role: "Media Planning Coordinator",
           period: "May 2021 — Jul 2023",
@@ -150,11 +167,21 @@ export const dict = {
             "Led a team of 10+ planners coordinating multi-market OOH and DOOH campaigns. Designed strategies for top international brands across transit, malls, airports and digital billboards, negotiating vendor contracts and optimizing costs.",
         },
         {
+          kind: "work" as const,
+          year: 2015,
           company: "LATCOM · Vicente López, Buenos Aires",
           role: "Strategic Development Analyst — USA, LATAM & Europe",
           period: "Oct 2015 — Apr 2021",
           summary:
             "Designed and executed strategic OOH/DOOH plans for clients in the U.S., LATAM and Europe. Expanded coverage to 4+ new LATAM markets and delivered analytical reports and economic projections to support executive decisions.",
+        },
+        {
+          kind: "study" as const,
+          year: 2006,
+          company: "Universidad Dr. Rafael Belloso Chacín (URBE) · Venezuela",
+          role: "Bachelor's Degree in Marketing & Advertising",
+          period: "2006",
+          summary: "Academic foundation in marketing, advertising and brand strategy.",
         },
       ],
     },
