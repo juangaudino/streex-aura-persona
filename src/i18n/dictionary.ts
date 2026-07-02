@@ -33,8 +33,23 @@ export const dict = {
     experience: {
       eyebrow: "Trayectoria",
       title: "De LATAM a los Estados Unidos.",
+      laneWork: "Experiencia",
+      laneStudy: "Educación",
+      tagWork: "Trabajo",
+      tagStudy: "Estudio",
       items: [
         {
+          kind: "study" as const,
+          year: 2026,
+          company: "Weber State University · Ogden, Utah",
+          role: "Entrepreneurship Certificate",
+          period: "2026",
+          summary:
+            "Formación continua orientada a programmatic advertising, digital analytics y emprendimiento en el mercado estadounidense.",
+        },
+        {
+          kind: "work" as const,
+          year: 2021,
           company: "LATCOM · Buenos Aires, Argentina",
           role: "Media Planning Coordinator",
           period: "May 2021 — Jul 2023",
@@ -42,31 +57,19 @@ export const dict = {
             "Lideré un equipo de 10+ planners coordinando campañas OOH y DOOH multimercado. Diseñé estrategias para marcas internacionales en transit, malls, aeropuertos y vallas digitales, negociando contratos con proveedores y optimizando costos.",
         },
         {
+          kind: "work" as const,
+          year: 2015,
           company: "LATCOM · Vicente López, Buenos Aires",
           role: "Strategic Development Analyst — USA, LATAM & Europa",
           period: "Oct 2015 — Abr 2021",
           summary:
             "Diseñé y ejecuté planes estratégicos OOH/DOOH para clientes en USA, LATAM y Europa. Expandí cobertura a 4+ nuevos mercados LATAM y entregué reportes analíticos y proyecciones económicas para soportar decisiones ejecutivas.",
         },
-      ],
-    },
-    education: {
-      eyebrow: "Formación",
-      title: "Estudios en paralelo.",
-      caption: "Formación académica y continua que corre en paralelo a la carrera profesional.",
-      items: [
         {
-          school: "Weber State University",
-          place: "Ogden, Utah",
-          degree: "Entrepreneurship Certificate",
-          period: "2026",
-          summary:
-            "Formación continua orientada a programmatic advertising, digital analytics y emprendimiento en el mercado estadounidense.",
-        },
-        {
-          school: "Universidad Dr. Rafael Belloso Chacín (URBE)",
-          place: "Venezuela",
-          degree: "Licenciatura en Marketing y Publicidad",
+          kind: "study" as const,
+          year: 2006,
+          company: "Universidad Dr. Rafael Belloso Chacín (URBE) · Venezuela",
+          role: "Licenciatura en Marketing y Publicidad",
           period: "2006",
           summary: "Base académica en marketing, publicidad y estrategia de marca.",
         },
