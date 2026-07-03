@@ -193,6 +193,7 @@ export type Database = {
       }
       timeline_items: {
         Row: {
+          attachments: Json
           bullets_en: string[]
           bullets_es: string[]
           created_at: string
@@ -212,6 +213,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          attachments?: Json
           bullets_en?: string[]
           bullets_es?: string[]
           created_at?: string
@@ -231,6 +233,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          attachments?: Json
           bullets_en?: string[]
           bullets_es?: string[]
           created_at?: string
