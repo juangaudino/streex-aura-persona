@@ -138,6 +138,7 @@ type Draft = {
   summary_es: string;
   summary_en: string;
   sort_order: number;
+  attachments: TimelineAttachment[];
 };
 
 const emptyDraft = (nextOrder: number): Draft => ({
@@ -151,6 +152,7 @@ const emptyDraft = (nextOrder: number): Draft => ({
   summary_es: "",
   summary_en: "",
   sort_order: nextOrder,
+  attachments: [],
 });
 
 function TimelineEditor({ items, loading }: { items: TimelineItem[]; loading: boolean }) {
