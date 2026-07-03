@@ -1,10 +1,10 @@
 import { motion, useScroll, useSpring, useTransform } from "motion/react";
 import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Briefcase, GraduationCap } from "lucide-react";
+import { Briefcase, GraduationCap, Paperclip, FileText } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
-import { timelineQuery, type TimelineItem } from "@/lib/cv-queries";
+import { timelineQuery, readAttachments, type TimelineItem, type TimelineAttachment } from "@/lib/cv-queries";
 import { Reveal, SectionHeader } from "./Reveal";
 
 const ease = [0.16, 1, 0.3, 1] as const;
