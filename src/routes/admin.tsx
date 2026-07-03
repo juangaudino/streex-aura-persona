@@ -238,6 +238,13 @@ function TimelineEditor({ items, loading }: { items: TimelineItem[]; loading: bo
                     {it.period_label_es || it.period_label_en}
                   </span>
                   <span className="text-[10px] text-muted-foreground">order {it.sort_order}</span>
+                  {readAttachments(it.attachments).length > 0 && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
+                      <Paperclip className="h-3 w-3" />
+                      {readAttachments(it.attachments).length}
+                    </span>
+                  )}
+                  <span className="hidden">{/* keep grid stable */}</span>
                 </div>
                 <h3 className="text-display mt-1 truncate text-lg">
                   {it.title_es || it.title_en}
