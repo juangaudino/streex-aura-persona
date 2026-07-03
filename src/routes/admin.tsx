@@ -2,10 +2,10 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, LogOut, Plus, Trash2, Pencil, X, Save, Briefcase, GraduationCap, Shield } from "lucide-react";
+import { ArrowLeft, LogOut, Plus, Trash2, Pencil, X, Save, Briefcase, GraduationCap, Shield, Paperclip, FileText, Image as ImageIcon, Upload, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { timelineQuery, type TimelineItem, type TimelineKind } from "@/lib/cv-queries";
+import { timelineQuery, readAttachments, type TimelineItem, type TimelineKind, type TimelineAttachment } from "@/lib/cv-queries";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · Timeline" }] }),
@@ -138,6 +138,7 @@ type Draft = {
   summary_es: string;
   summary_en: string;
   sort_order: number;
+  attachments: TimelineAttachment[];
 };
 
 const emptyDraft = (nextOrder: number): Draft => ({
@@ -151,6 +152,7 @@ const emptyDraft = (nextOrder: number): Draft => ({
   summary_es: "",
   summary_en: "",
   sort_order: nextOrder,
+  attachments: [],
 });
 
 function TimelineEditor({ items, loading }: { items: TimelineItem[]; loading: boolean }) {
@@ -164,36 +166,24 @@ function TimelineEditor({ items, loading }: { items: TimelineItem[]; loading: bo
 
   const save = useMutation({
     mutationFn: async (d: Draft) => {
+      const payload = {
+        kind: d.kind,
+        title_es: d.title_es,
+        title_en: d.title_en,
+        org: d.org,
+        location: d.location,
+        period_label_es: d.period_label_es,
+        period_label_en: d.period_label_en,
+        summary_es: d.summary_es,
+        summary_en: d.summary_en,
+        sort_order: d.sort_order,
+        attachments: d.attachments as unknown as never,
+      };
       if (d.id) {
-        const { error } = await supabase
-          .from("timeline_items")
-          .update({
-            kind: d.kind,
-            title_es: d.title_es,
-            title_en: d.title_en,
-            org: d.org,
-            location: d.location,
-            period_label_es: d.period_label_es,
-            period_label_en: d.period_label_en,
-            summary_es: d.summary_es,
-            summary_en: d.summary_en,
-            sort_order: d.sort_order,
-          })
-          .eq("id", d.id);
+        const { error } = await supabase.from("timeline_items").update(payload).eq("id", d.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("timeline_items").insert({
-          kind: d.kind,
-          title_es: d.title_es,
-          title_en: d.title_en,
-          org: d.org,
-          location: d.location,
-          period_label_es: d.period_label_es,
-          period_label_en: d.period_label_en,
-          summary_es: d.summary_es,
-          summary_en: d.summary_en,
-          sort_order: d.sort_order,
-        });
+        const { error } = await supabase.from("timeline_items").insert(payload);
         if (error) throw error;
       }
     },
@@ -248,6 +238,13 @@ function TimelineEditor({ items, loading }: { items: TimelineItem[]; loading: bo
                     {it.period_label_es || it.period_label_en}
                   </span>
                   <span className="text-[10px] text-muted-foreground">order {it.sort_order}</span>
+                  {readAttachments(it.attachments).length > 0 && (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] text-muted-foreground">
+                      <Paperclip className="h-3 w-3" />
+                      {readAttachments(it.attachments).length}
+                    </span>
+                  )}
+                  <span className="hidden">{/* keep grid stable */}</span>
                 </div>
                 <h3 className="text-display mt-1 truncate text-lg">
                   {it.title_es || it.title_en}
@@ -269,6 +266,7 @@ function TimelineEditor({ items, loading }: { items: TimelineItem[]; loading: bo
                       summary_es: it.summary_es,
                       summary_en: it.summary_en,
                       sort_order: it.sort_order,
+                      attachments: readAttachments(it.attachments),
                     })
                   }
                   className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs hover:bg-secondary"
@@ -365,6 +363,13 @@ function TimelineEditor({ items, loading }: { items: TimelineItem[]; loading: bo
 
                 <TextArea label="Resumen (ES)" value={editing.summary_es} onChange={(v) => setEditing({ ...editing, summary_es: v })} className="col-span-2" />
                 <TextArea label="Summary (EN)" value={editing.summary_en} onChange={(v) => setEditing({ ...editing, summary_en: v })} className="col-span-2" />
+
+                <div className="col-span-2">
+                  <AttachmentsEditor
+                    value={editing.attachments}
+                    onChange={(next) => setEditing({ ...editing, attachments: next })}
+                  />
+                </div>
               </div>
 
               {save.error && <p className="mt-4 text-sm text-destructive">{(save.error as Error).message}</p>}
@@ -425,5 +430,139 @@ function TextArea({
         className="w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm leading-relaxed outline-none focus:border-foreground"
       />
     </label>
+  );
+}
+
+const SIGNED_URL_TTL = 60 * 60 * 24 * 365 * 10; // 10 years
+
+function isImage(type: string) {
+  return type.startsWith("image/");
+}
+
+function AttachmentsEditor({
+  value,
+  onChange,
+}: {
+  value: TimelineAttachment[];
+  onChange: (next: TimelineAttachment[]) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function handleFiles(files: FileList | null) {
+    if (!files || !files.length) return;
+    setUploading(true);
+    setErr(null);
+    try {
+      const uploaded: TimelineAttachment[] = [];
+      for (const file of Array.from(files)) {
+        if (file.size > 25 * 1024 * 1024) {
+          throw new Error(`"${file.name}" supera los 25MB`);
+        }
+        const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const path = `timeline/${crypto.randomUUID()}-${safe}`;
+        const up = await supabase.storage
+          .from("cv-attachments")
+          .upload(path, file, { contentType: file.type || "application/octet-stream", upsert: false });
+        if (up.error) throw up.error;
+        const signed = await supabase.storage.from("cv-attachments").createSignedUrl(path, SIGNED_URL_TTL);
+        if (signed.error) throw signed.error;
+        uploaded.push({
+          path,
+          url: signed.data.signedUrl,
+          name: file.name,
+          type: file.type || "application/octet-stream",
+          size: file.size,
+        });
+      }
+      onChange([...value, ...uploaded]);
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function removeAt(idx: number) {
+    const target = value[idx];
+    if (!target) return;
+    if (!confirm(`¿Eliminar "${target.name}"?`)) return;
+    await supabase.storage.from("cv-attachments").remove([target.path]);
+    onChange(value.filter((_, i) => i !== idx));
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between">
+        <span className="text-eyebrow flex items-center gap-1.5">
+          <Paperclip className="h-3 w-3" /> Adjuntos (certificados, imágenes, PDFs)
+        </span>
+        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground">
+          {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+          {uploading ? "Subiendo…" : "Subir archivos"}
+          <input
+            type="file"
+            multiple
+            accept="image/*,application/pdf"
+            className="hidden"
+            disabled={uploading}
+            onChange={(e) => {
+              handleFiles(e.target.files);
+              e.currentTarget.value = "";
+            }}
+          />
+        </label>
+      </div>
+
+      {err && <p className="text-xs text-destructive">{err}</p>}
+
+      {value.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
+          Sin archivos. Subí imágenes o PDFs de certificados, diplomas, etc.
+        </p>
+      ) : (
+        <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {value.map((a, i) => (
+            <li
+              key={a.path}
+              className="group flex items-center gap-3 rounded-lg border border-border bg-surface p-2.5"
+            >
+              <a
+                href={a.url}
+                target="_blank"
+                rel="noreferrer"
+                className="flex min-w-0 flex-1 items-center gap-3"
+              >
+                {isImage(a.type) ? (
+                  <img
+                    src={a.url}
+                    alt={a.name}
+                    className="h-12 w-12 shrink-0 rounded-md object-cover"
+                  />
+                ) : (
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-secondary text-muted-foreground">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="truncate text-sm">{a.name}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {(a.size / 1024).toFixed(0)} KB · {a.type.split("/")[1] || "file"}
+                  </p>
+                </div>
+              </a>
+              <button
+                type="button"
+                onClick={() => removeAt(i)}
+                className="rounded-full p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                title="Eliminar"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

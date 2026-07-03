@@ -1,10 +1,10 @@
 import { motion, useScroll, useSpring, useTransform } from "motion/react";
 import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Briefcase, GraduationCap } from "lucide-react";
+import { Briefcase, GraduationCap, Paperclip, FileText } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
-import { timelineQuery, type TimelineItem } from "@/lib/cv-queries";
+import { timelineQuery, readAttachments, type TimelineItem, type TimelineAttachment } from "@/lib/cv-queries";
 import { Reveal, SectionHeader } from "./Reveal";
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -16,6 +16,7 @@ type Item = {
   company: string;
   period: string;
   summary: string;
+  attachments: TimelineAttachment[];
 };
 
 export function Experience() {
@@ -35,6 +36,7 @@ export function Experience() {
         company: it.org,
         period: lang === "es" ? it.period_label_es : it.period_label_en,
         summary: lang === "es" ? it.summary_es : it.summary_en,
+        attachments: readAttachments(it.attachments),
       }));
     }
     // Fallback to static dictionary while data loads or if empty.
@@ -45,6 +47,7 @@ export function Experience() {
       company: it.company,
       period: it.period,
       summary: it.summary,
+      attachments: [] as TimelineAttachment[],
     }));
   }, [dbItems, lang, t.items]);
 
@@ -161,6 +164,27 @@ export function Experience() {
                       <p className="mt-4 text-sm leading-relaxed text-muted-foreground md:text-base">
                         {item.summary}
                       </p>
+                      {item.attachments.length > 0 && (
+                        <div className={`mt-4 flex flex-wrap gap-2 ${isStudy ? "" : "md:justify-end"}`}>
+                          {item.attachments.map((a) => (
+                            <a
+                              key={a.path}
+                              href={a.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
+                              title={a.name}
+                            >
+                              {a.type.startsWith("image/") ? (
+                                <Paperclip className="h-3 w-3" />
+                              ) : (
+                                <FileText className="h-3 w-3" />
+                              )}
+                              <span className="max-w-[16ch] truncate">{a.name}</span>
+                            </a>
+                          ))}
+                        </div>
+                      )}
                     </motion.div>
                   </motion.div>
                 </Reveal>
