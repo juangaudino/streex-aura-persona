@@ -259,6 +259,7 @@ function TimelineEditor({ items, loading }: { items: TimelineItem[]; loading: bo
                       summary_es: it.summary_es,
                       summary_en: it.summary_en,
                       sort_order: it.sort_order,
+                      attachments: readAttachments(it.attachments),
                     })
                   }
                   className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs hover:bg-secondary"
