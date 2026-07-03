@@ -16,6 +16,7 @@ type Item = {
   company: string;
   period: string;
   summary: string;
+  attachments: TimelineAttachment[];
 };
 
 export function Experience() {
