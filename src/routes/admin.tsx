@@ -356,6 +356,13 @@ function TimelineEditor({ items, loading }: { items: TimelineItem[]; loading: bo
 
                 <TextArea label="Resumen (ES)" value={editing.summary_es} onChange={(v) => setEditing({ ...editing, summary_es: v })} className="col-span-2" />
                 <TextArea label="Summary (EN)" value={editing.summary_en} onChange={(v) => setEditing({ ...editing, summary_en: v })} className="col-span-2" />
+
+                <div className="col-span-2">
+                  <AttachmentsEditor
+                    value={editing.attachments}
+                    onChange={(next) => setEditing({ ...editing, attachments: next })}
+                  />
+                </div>
               </div>
 
               {save.error && <p className="mt-4 text-sm text-destructive">{(save.error as Error).message}</p>}
