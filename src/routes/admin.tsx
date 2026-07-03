@@ -425,3 +425,137 @@ function TextArea({
     </label>
   );
 }
+
+const SIGNED_URL_TTL = 60 * 60 * 24 * 365 * 10; // 10 years
+
+function isImage(type: string) {
+  return type.startsWith("image/");
+}
+
+function AttachmentsEditor({
+  value,
+  onChange,
+}: {
+  value: TimelineAttachment[];
+  onChange: (next: TimelineAttachment[]) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function handleFiles(files: FileList | null) {
+    if (!files || !files.length) return;
+    setUploading(true);
+    setErr(null);
+    try {
+      const uploaded: TimelineAttachment[] = [];
+      for (const file of Array.from(files)) {
+        if (file.size > 25 * 1024 * 1024) {
+          throw new Error(`"${file.name}" supera los 25MB`);
+        }
+        const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const path = `timeline/${crypto.randomUUID()}-${safe}`;
+        const up = await supabase.storage
+          .from("cv-attachments")
+          .upload(path, file, { contentType: file.type || "application/octet-stream", upsert: false });
+        if (up.error) throw up.error;
+        const signed = await supabase.storage.from("cv-attachments").createSignedUrl(path, SIGNED_URL_TTL);
+        if (signed.error) throw signed.error;
+        uploaded.push({
+          path,
+          url: signed.data.signedUrl,
+          name: file.name,
+          type: file.type || "application/octet-stream",
+          size: file.size,
+        });
+      }
+      onChange([...value, ...uploaded]);
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function removeAt(idx: number) {
+    const target = value[idx];
+    if (!target) return;
+    if (!confirm(`¿Eliminar "${target.name}"?`)) return;
+    await supabase.storage.from("cv-attachments").remove([target.path]);
+    onChange(value.filter((_, i) => i !== idx));
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between">
+        <span className="text-eyebrow flex items-center gap-1.5">
+          <Paperclip className="h-3 w-3" /> Adjuntos (certificados, imágenes, PDFs)
+        </span>
+        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground">
+          {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+          {uploading ? "Subiendo…" : "Subir archivos"}
+          <input
+            type="file"
+            multiple
+            accept="image/*,application/pdf"
+            className="hidden"
+            disabled={uploading}
+            onChange={(e) => {
+              handleFiles(e.target.files);
+              e.currentTarget.value = "";
+            }}
+          />
+        </label>
+      </div>
+
+      {err && <p className="text-xs text-destructive">{err}</p>}
+
+      {value.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
+          Sin archivos. Subí imágenes o PDFs de certificados, diplomas, etc.
+        </p>
+      ) : (
+        <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {value.map((a, i) => (
+            <li
+              key={a.path}
+              className="group flex items-center gap-3 rounded-lg border border-border bg-surface p-2.5"
+            >
+              <a
+                href={a.url}
+                target="_blank"
+                rel="noreferrer"
+                className="flex min-w-0 flex-1 items-center gap-3"
+              >
+                {isImage(a.type) ? (
+                  <img
+                    src={a.url}
+                    alt={a.name}
+                    className="h-12 w-12 shrink-0 rounded-md object-cover"
+                  />
+                ) : (
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-secondary text-muted-foreground">
+                    <FileText className="h-5 w-5" />
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <p className="truncate text-sm">{a.name}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {(a.size / 1024).toFixed(0)} KB · {a.type.split("/")[1] || "file"}
+                  </p>
+                </div>
+              </a>
+              <button
+                type="button"
+                onClick={() => removeAt(i)}
+                className="rounded-full p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                title="Eliminar"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
