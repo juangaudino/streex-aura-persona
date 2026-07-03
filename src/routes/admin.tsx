@@ -166,36 +166,24 @@ function TimelineEditor({ items, loading }: { items: TimelineItem[]; loading: bo
 
   const save = useMutation({
     mutationFn: async (d: Draft) => {
+      const payload = {
+        kind: d.kind,
+        title_es: d.title_es,
+        title_en: d.title_en,
+        org: d.org,
+        location: d.location,
+        period_label_es: d.period_label_es,
+        period_label_en: d.period_label_en,
+        summary_es: d.summary_es,
+        summary_en: d.summary_en,
+        sort_order: d.sort_order,
+        attachments: d.attachments as unknown as never,
+      };
       if (d.id) {
-        const { error } = await supabase
-          .from("timeline_items")
-          .update({
-            kind: d.kind,
-            title_es: d.title_es,
-            title_en: d.title_en,
-            org: d.org,
-            location: d.location,
-            period_label_es: d.period_label_es,
-            period_label_en: d.period_label_en,
-            summary_es: d.summary_es,
-            summary_en: d.summary_en,
-            sort_order: d.sort_order,
-          })
-          .eq("id", d.id);
+        const { error } = await supabase.from("timeline_items").update(payload).eq("id", d.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("timeline_items").insert({
-          kind: d.kind,
-          title_es: d.title_es,
-          title_en: d.title_en,
-          org: d.org,
-          location: d.location,
-          period_label_es: d.period_label_es,
-          period_label_en: d.period_label_en,
-          summary_es: d.summary_es,
-          summary_en: d.summary_en,
-          sort_order: d.sort_order,
-        });
+        const { error } = await supabase.from("timeline_items").insert(payload);
         if (error) throw error;
       }
     },
