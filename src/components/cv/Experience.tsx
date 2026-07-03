@@ -36,6 +36,7 @@ export function Experience() {
         company: it.org,
         period: lang === "es" ? it.period_label_es : it.period_label_en,
         summary: lang === "es" ? it.summary_es : it.summary_en,
+        attachments: readAttachments(it.attachments),
       }));
     }
     // Fallback to static dictionary while data loads or if empty.
@@ -46,6 +47,7 @@ export function Experience() {
       company: it.company,
       period: it.period,
       summary: it.summary,
+      attachments: [] as TimelineAttachment[],
     }));
   }, [dbItems, lang, t.items]);
 
