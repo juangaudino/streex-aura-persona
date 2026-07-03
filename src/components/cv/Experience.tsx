@@ -164,6 +164,27 @@ export function Experience() {
                       <p className="mt-4 text-sm leading-relaxed text-muted-foreground md:text-base">
                         {item.summary}
                       </p>
+                      {item.attachments.length > 0 && (
+                        <div className={`mt-4 flex flex-wrap gap-2 ${isStudy ? "" : "md:justify-end"}`}>
+                          {item.attachments.map((a) => (
+                            <a
+                              key={a.path}
+                              href={a.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
+                              title={a.name}
+                            >
+                              {a.type.startsWith("image/") ? (
+                                <Paperclip className="h-3 w-3" />
+                              ) : (
+                                <FileText className="h-3 w-3" />
+                              )}
+                              <span className="max-w-[16ch] truncate">{a.name}</span>
+                            </a>
+                          ))}
+                        </div>
+                      )}
                     </motion.div>
                   </motion.div>
                 </Reveal>
