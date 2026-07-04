@@ -2,10 +2,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowLeft, LogOut, Plus, Trash2, Pencil, X, Save, Briefcase, GraduationCap, Shield, Paperclip, FileText, Image as ImageIcon, Upload, Loader2 } from "lucide-react";
+import { ArrowLeft, LogOut, Plus, Trash2, Pencil, X, Save, Briefcase, GraduationCap, Shield, Paperclip, FileText, Image as ImageIcon, Upload, Loader2, FileEdit } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { timelineQuery, readAttachments, type TimelineItem, type TimelineKind, type TimelineAttachment } from "@/lib/cv-queries";
+import { timelineQuery, profileQuery, readAttachments, type TimelineItem, type TimelineKind, type TimelineAttachment, type ProfileSettings } from "@/lib/cv-queries";
+
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin · Timeline" }] }),
