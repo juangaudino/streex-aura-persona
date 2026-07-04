@@ -31,6 +31,22 @@ export type Database = {
           contact_title_es: string
           cv_url: string
           email: string
+          experience_eyebrow_en: string
+          experience_eyebrow_es: string
+          experience_lane_study_en: string
+          experience_lane_study_es: string
+          experience_lane_work_en: string
+          experience_lane_work_es: string
+          experience_tag_study_en: string
+          experience_tag_study_es: string
+          experience_tag_work_en: string
+          experience_tag_work_es: string
+          experience_title_en: string
+          experience_title_es: string
+          hero_cta_alt_en: string
+          hero_cta_alt_es: string
+          hero_cta_en: string
+          hero_cta_es: string
           hero_eyebrow_en: string
           hero_eyebrow_es: string
           hero_location_en: string
@@ -46,7 +62,15 @@ export type Database = {
           phone: string
           photo_dark_url: string
           photo_light_url: string
+          projects_eyebrow_en: string
+          projects_eyebrow_es: string
+          projects_title_en: string
+          projects_title_es: string
           singleton: boolean
+          skills_eyebrow_en: string
+          skills_eyebrow_es: string
+          skills_title_en: string
+          skills_title_es: string
           updated_at: string
         }
         Insert: {
@@ -65,6 +89,22 @@ export type Database = {
           contact_title_es?: string
           cv_url?: string
           email?: string
+          experience_eyebrow_en?: string
+          experience_eyebrow_es?: string
+          experience_lane_study_en?: string
+          experience_lane_study_es?: string
+          experience_lane_work_en?: string
+          experience_lane_work_es?: string
+          experience_tag_study_en?: string
+          experience_tag_study_es?: string
+          experience_tag_work_en?: string
+          experience_tag_work_es?: string
+          experience_title_en?: string
+          experience_title_es?: string
+          hero_cta_alt_en?: string
+          hero_cta_alt_es?: string
+          hero_cta_en?: string
+          hero_cta_es?: string
           hero_eyebrow_en?: string
           hero_eyebrow_es?: string
           hero_location_en?: string
@@ -80,7 +120,15 @@ export type Database = {
           phone?: string
           photo_dark_url?: string
           photo_light_url?: string
+          projects_eyebrow_en?: string
+          projects_eyebrow_es?: string
+          projects_title_en?: string
+          projects_title_es?: string
           singleton?: boolean
+          skills_eyebrow_en?: string
+          skills_eyebrow_es?: string
+          skills_title_en?: string
+          skills_title_es?: string
           updated_at?: string
         }
         Update: {
@@ -99,6 +147,22 @@ export type Database = {
           contact_title_es?: string
           cv_url?: string
           email?: string
+          experience_eyebrow_en?: string
+          experience_eyebrow_es?: string
+          experience_lane_study_en?: string
+          experience_lane_study_es?: string
+          experience_lane_work_en?: string
+          experience_lane_work_es?: string
+          experience_tag_study_en?: string
+          experience_tag_study_es?: string
+          experience_tag_work_en?: string
+          experience_tag_work_es?: string
+          experience_title_en?: string
+          experience_title_es?: string
+          hero_cta_alt_en?: string
+          hero_cta_alt_es?: string
+          hero_cta_en?: string
+          hero_cta_es?: string
           hero_eyebrow_en?: string
           hero_eyebrow_es?: string
           hero_location_en?: string
@@ -114,7 +178,15 @@ export type Database = {
           phone?: string
           photo_dark_url?: string
           photo_light_url?: string
+          projects_eyebrow_en?: string
+          projects_eyebrow_es?: string
+          projects_title_en?: string
+          projects_title_es?: string
           singleton?: boolean
+          skills_eyebrow_en?: string
+          skills_eyebrow_es?: string
+          skills_title_en?: string
+          skills_title_es?: string
           updated_at?: string
         }
         Relationships: []
