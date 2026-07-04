@@ -107,14 +107,19 @@ function AdminPage() {
       </header>
 
       <section className="mx-auto max-w-5xl px-6 py-16">
-        <p className="text-eyebrow mb-3">Timeline</p>
-        <h1 className="text-display text-4xl md:text-5xl">Experiencia y educación</h1>
-        <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-          Agrega, edita o elimina items del timeline. Los items con <em>kind: study</em> aparecen en la columna de educación, los <em>work</em> en experiencia. El orden en el sitio se controla con “sort_order” (más alto = más reciente = más arriba).
-        </p>
+        <ContentEditor />
 
-        <TimelineEditor items={timeline.data ?? []} loading={timeline.isLoading} />
+        <div className="mt-24">
+          <p className="text-eyebrow mb-3">Timeline</p>
+          <h1 className="text-display text-4xl md:text-5xl">Experiencia y educación</h1>
+          <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+            Agrega, edita o elimina items del timeline. Los items con <em>kind: study</em> aparecen en la columna de educación, los <em>work</em> en experiencia. El orden en el sitio se controla con “sort_order” (más alto = más reciente = más arriba).
+          </p>
+
+          <TimelineEditor items={timeline.data ?? []} loading={timeline.isLoading} />
+        </div>
       </section>
+
     </main>
   );
 }
