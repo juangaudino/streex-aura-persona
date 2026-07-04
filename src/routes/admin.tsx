@@ -572,3 +572,293 @@ function AttachmentsEditor({
     </div>
   );
 }
+
+// ---------------- Site content editor ----------------
+
+type ContentDraft = Pick<
+  ProfileSettings,
+  | "hero_eyebrow_es" | "hero_eyebrow_en"
+  | "hero_role_es" | "hero_role_en"
+  | "hero_location_es" | "hero_location_en"
+  | "hero_cta_es" | "hero_cta_en"
+  | "hero_cta_alt_es" | "hero_cta_alt_en"
+  | "about_eyebrow_es" | "about_eyebrow_en"
+  | "about_title_es" | "about_title_en"
+  | "experience_eyebrow_es" | "experience_eyebrow_en"
+  | "experience_title_es" | "experience_title_en"
+  | "experience_lane_work_es" | "experience_lane_work_en"
+  | "experience_lane_study_es" | "experience_lane_study_en"
+  | "experience_tag_work_es" | "experience_tag_work_en"
+  | "experience_tag_study_es" | "experience_tag_study_en"
+  | "projects_eyebrow_es" | "projects_eyebrow_en"
+  | "projects_title_es" | "projects_title_en"
+  | "skills_eyebrow_es" | "skills_eyebrow_en"
+  | "skills_title_es" | "skills_title_en"
+  | "contact_eyebrow_es" | "contact_eyebrow_en"
+  | "contact_title_es" | "contact_title_en"
+  | "contact_sub_es" | "contact_sub_en"
+> & {
+  hero_title_es: string;
+  hero_title_en: string;
+  about_body_es: string;
+  about_body_en: string;
+};
+
+function toDraft(p: ProfileSettings): ContentDraft {
+  return {
+    hero_eyebrow_es: p.hero_eyebrow_es,
+    hero_eyebrow_en: p.hero_eyebrow_en,
+    hero_title_es: (p.hero_title_es ?? []).join("\n"),
+    hero_title_en: (p.hero_title_en ?? []).join("\n"),
+    hero_role_es: p.hero_role_es,
+    hero_role_en: p.hero_role_en,
+    hero_location_es: p.hero_location_es,
+    hero_location_en: p.hero_location_en,
+    hero_cta_es: p.hero_cta_es,
+    hero_cta_en: p.hero_cta_en,
+    hero_cta_alt_es: p.hero_cta_alt_es,
+    hero_cta_alt_en: p.hero_cta_alt_en,
+    about_eyebrow_es: p.about_eyebrow_es,
+    about_eyebrow_en: p.about_eyebrow_en,
+    about_title_es: p.about_title_es,
+    about_title_en: p.about_title_en,
+    about_body_es: (p.about_body_es ?? []).join("\n\n"),
+    about_body_en: (p.about_body_en ?? []).join("\n\n"),
+    experience_eyebrow_es: p.experience_eyebrow_es,
+    experience_eyebrow_en: p.experience_eyebrow_en,
+    experience_title_es: p.experience_title_es,
+    experience_title_en: p.experience_title_en,
+    experience_lane_work_es: p.experience_lane_work_es,
+    experience_lane_work_en: p.experience_lane_work_en,
+    experience_lane_study_es: p.experience_lane_study_es,
+    experience_lane_study_en: p.experience_lane_study_en,
+    experience_tag_work_es: p.experience_tag_work_es,
+    experience_tag_work_en: p.experience_tag_work_en,
+    experience_tag_study_es: p.experience_tag_study_es,
+    experience_tag_study_en: p.experience_tag_study_en,
+    projects_eyebrow_es: p.projects_eyebrow_es,
+    projects_eyebrow_en: p.projects_eyebrow_en,
+    projects_title_es: p.projects_title_es,
+    projects_title_en: p.projects_title_en,
+    skills_eyebrow_es: p.skills_eyebrow_es,
+    skills_eyebrow_en: p.skills_eyebrow_en,
+    skills_title_es: p.skills_title_es,
+    skills_title_en: p.skills_title_en,
+    contact_eyebrow_es: p.contact_eyebrow_es,
+    contact_eyebrow_en: p.contact_eyebrow_en,
+    contact_title_es: p.contact_title_es,
+    contact_title_en: p.contact_title_en,
+    contact_sub_es: p.contact_sub_es,
+    contact_sub_en: p.contact_sub_en,
+  };
+}
+
+function ContentEditor() {
+  const qc = useQueryClient();
+  const { data: profile, isLoading } = useQuery(profileQuery);
+  const [draft, setDraft] = useState<ContentDraft | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (profile && !draft) setDraft(toDraft(profile));
+  }, [profile, draft]);
+
+  const save = useMutation({
+    mutationFn: async (d: ContentDraft) => {
+      if (!profile) throw new Error("Perfil no cargado");
+      const payload = {
+        ...d,
+        hero_title_es: d.hero_title_es.split("\n").map((s) => s.trim()).filter(Boolean),
+        hero_title_en: d.hero_title_en.split("\n").map((s) => s.trim()).filter(Boolean),
+        about_body_es: d.about_body_es.split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean),
+        about_body_en: d.about_body_en.split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean),
+      };
+      const { error } = await supabase.from("profile_settings").update(payload).eq("id", profile.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profile_settings"] });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    },
+  });
+
+  if (isLoading || !draft) {
+    return (
+      <div>
+        <p className="text-eyebrow mb-3">Contenido</p>
+        <h1 className="text-display text-4xl md:text-5xl">Textos del sitio</h1>
+        <p className="mt-6 text-sm text-muted-foreground">Cargando…</p>
+      </div>
+    );
+  }
+
+  const update = <K extends keyof ContentDraft>(k: K, v: ContentDraft[K]) =>
+    setDraft({ ...draft, [k]: v });
+
+  return (
+    <div>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-eyebrow mb-3">Contenido</p>
+          <h1 className="text-display text-4xl md:text-5xl">Textos del sitio</h1>
+          <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+            Editá todos los títulos, eyebrows y textos de cada sección en español e inglés. Los cambios se ven en el sitio al guardar.
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {saved && <span className="text-xs text-accent">Guardado ✓</span>}
+          <button
+            onClick={() => save.mutate(draft)}
+            disabled={save.isPending}
+            className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background disabled:opacity-50"
+          >
+            {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {save.isPending ? "Guardando…" : "Guardar cambios"}
+          </button>
+        </div>
+      </div>
+
+      {save.error && <p className="mt-4 text-sm text-destructive">{(save.error as Error).message}</p>}
+
+      <div className="mt-10 space-y-10">
+        <ContentSection title="Hero" icon={FileEdit}>
+          <BilingualField label="Eyebrow" es={draft.hero_eyebrow_es} en={draft.hero_eyebrow_en} onEs={(v) => update("hero_eyebrow_es", v)} onEn={(v) => update("hero_eyebrow_en", v)} />
+          <BilingualArea label="Título (una línea por fila)" es={draft.hero_title_es} en={draft.hero_title_en} onEs={(v) => update("hero_title_es", v)} onEn={(v) => update("hero_title_en", v)} rows={4} />
+          <BilingualField label="Rol" es={draft.hero_role_es} en={draft.hero_role_en} onEs={(v) => update("hero_role_es", v)} onEn={(v) => update("hero_role_en", v)} />
+          <BilingualField label="Ubicación" es={draft.hero_location_es} en={draft.hero_location_en} onEs={(v) => update("hero_location_es", v)} onEn={(v) => update("hero_location_en", v)} />
+          <BilingualField label="CTA principal" es={draft.hero_cta_es} en={draft.hero_cta_en} onEs={(v) => update("hero_cta_es", v)} onEn={(v) => update("hero_cta_en", v)} />
+          <BilingualField label="CTA secundario" es={draft.hero_cta_alt_es} en={draft.hero_cta_alt_en} onEs={(v) => update("hero_cta_alt_es", v)} onEn={(v) => update("hero_cta_alt_en", v)} />
+        </ContentSection>
+
+        <ContentSection title="About" icon={FileEdit}>
+          <BilingualField label="Eyebrow" es={draft.about_eyebrow_es} en={draft.about_eyebrow_en} onEs={(v) => update("about_eyebrow_es", v)} onEn={(v) => update("about_eyebrow_en", v)} />
+          <BilingualField label="Título" es={draft.about_title_es} en={draft.about_title_en} onEs={(v) => update("about_title_es", v)} onEn={(v) => update("about_title_en", v)} />
+          <BilingualArea label="Cuerpo (párrafos separados por línea en blanco)" es={draft.about_body_es} en={draft.about_body_en} onEs={(v) => update("about_body_es", v)} onEn={(v) => update("about_body_en", v)} rows={6} />
+        </ContentSection>
+
+        <ContentSection title="Experiencia" icon={Briefcase}>
+          <BilingualField label="Eyebrow" es={draft.experience_eyebrow_es} en={draft.experience_eyebrow_en} onEs={(v) => update("experience_eyebrow_es", v)} onEn={(v) => update("experience_eyebrow_en", v)} />
+          <BilingualField label="Título" es={draft.experience_title_es} en={draft.experience_title_en} onEs={(v) => update("experience_title_es", v)} onEn={(v) => update("experience_title_en", v)} />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <BilingualField label="Columna trabajo" es={draft.experience_lane_work_es} en={draft.experience_lane_work_en} onEs={(v) => update("experience_lane_work_es", v)} onEn={(v) => update("experience_lane_work_en", v)} />
+            <BilingualField label="Columna estudio" es={draft.experience_lane_study_es} en={draft.experience_lane_study_en} onEs={(v) => update("experience_lane_study_es", v)} onEn={(v) => update("experience_lane_study_en", v)} />
+            <BilingualField label="Tag trabajo" es={draft.experience_tag_work_es} en={draft.experience_tag_work_en} onEs={(v) => update("experience_tag_work_es", v)} onEn={(v) => update("experience_tag_work_en", v)} />
+            <BilingualField label="Tag estudio" es={draft.experience_tag_study_es} en={draft.experience_tag_study_en} onEs={(v) => update("experience_tag_study_es", v)} onEn={(v) => update("experience_tag_study_en", v)} />
+          </div>
+        </ContentSection>
+
+        <ContentSection title="Proyectos / Campañas" icon={FileEdit}>
+          <BilingualField label="Eyebrow" es={draft.projects_eyebrow_es} en={draft.projects_eyebrow_en} onEs={(v) => update("projects_eyebrow_es", v)} onEn={(v) => update("projects_eyebrow_en", v)} />
+          <BilingualField label="Título" es={draft.projects_title_es} en={draft.projects_title_en} onEs={(v) => update("projects_title_es", v)} onEn={(v) => update("projects_title_en", v)} />
+        </ContentSection>
+
+        <ContentSection title="Skills" icon={FileEdit}>
+          <BilingualField label="Eyebrow" es={draft.skills_eyebrow_es} en={draft.skills_eyebrow_en} onEs={(v) => update("skills_eyebrow_es", v)} onEn={(v) => update("skills_eyebrow_en", v)} />
+          <BilingualField label="Título" es={draft.skills_title_es} en={draft.skills_title_en} onEs={(v) => update("skills_title_es", v)} onEn={(v) => update("skills_title_en", v)} />
+        </ContentSection>
+
+        <ContentSection title="Contacto" icon={FileEdit}>
+          <BilingualField label="Eyebrow" es={draft.contact_eyebrow_es} en={draft.contact_eyebrow_en} onEs={(v) => update("contact_eyebrow_es", v)} onEn={(v) => update("contact_eyebrow_en", v)} />
+          <BilingualField label="Título" es={draft.contact_title_es} en={draft.contact_title_en} onEs={(v) => update("contact_title_es", v)} onEn={(v) => update("contact_title_en", v)} />
+          <BilingualArea label="Subtítulo" es={draft.contact_sub_es} en={draft.contact_sub_en} onEs={(v) => update("contact_sub_es", v)} onEn={(v) => update("contact_sub_en", v)} rows={2} />
+        </ContentSection>
+      </div>
+
+      <div className="mt-8 flex items-center justify-end gap-2">
+        {saved && <span className="text-xs text-accent">Guardado ✓</span>}
+        <button
+          onClick={() => save.mutate(draft)}
+          disabled={save.isPending}
+          className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background disabled:opacity-50"
+        >
+          {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+          {save.isPending ? "Guardando…" : "Guardar cambios"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ContentSection({
+  title, icon: Icon, children,
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border border-border bg-surface p-6">
+      <div className="mb-5 flex items-center gap-2">
+        <Icon className="h-4 w-4 text-muted-foreground" />
+        <h2 className="text-display text-xl">{title}</h2>
+      </div>
+      <div className="space-y-4">{children}</div>
+    </section>
+  );
+}
+
+function BilingualField({
+  label, es, en, onEs, onEn,
+}: {
+  label: string;
+  es: string;
+  en: string;
+  onEs: (v: string) => void;
+  onEn: (v: string) => void;
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+      <label className="flex flex-col gap-1">
+        <span className="text-eyebrow">{label} · ES</span>
+        <input
+          value={es}
+          onChange={(e) => onEs(e.target.value)}
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
+        />
+      </label>
+      <label className="flex flex-col gap-1">
+        <span className="text-eyebrow">{label} · EN</span>
+        <input
+          value={en}
+          onChange={(e) => onEn(e.target.value)}
+          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground"
+        />
+      </label>
+    </div>
+  );
+}
+
+function BilingualArea({
+  label, es, en, onEs, onEn, rows = 3,
+}: {
+  label: string;
+  es: string;
+  en: string;
+  onEs: (v: string) => void;
+  onEn: (v: string) => void;
+  rows?: number;
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+      <label className="flex flex-col gap-1">
+        <span className="text-eyebrow">{label} · ES</span>
+        <textarea
+          value={es}
+          rows={rows}
+          onChange={(e) => onEs(e.target.value)}
+          className="w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm leading-relaxed outline-none focus:border-foreground"
+        />
+      </label>
+      <label className="flex flex-col gap-1">
+        <span className="text-eyebrow">{label} · EN</span>
+        <textarea
+          value={en}
+          rows={rows}
+          onChange={(e) => onEn(e.target.value)}
+          className="w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm leading-relaxed outline-none focus:border-foreground"
+        />
+      </label>
+    </div>
+  );
+}
