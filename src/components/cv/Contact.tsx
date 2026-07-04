@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { motion } from "motion/react";
+import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { ArrowRight, Mail, Linkedin, Phone } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
+import { profileQuery } from "@/lib/cv-queries";
 import { Reveal, SectionHeader } from "./Reveal";
 
 const schema = z.object({
@@ -14,7 +16,16 @@ const schema = z.object({
 
 export function Contact() {
   const { lang } = useApp();
-  const t = dict[lang].contact;
+  const fallback = dict[lang].contact;
+  const { data: p } = useQuery(profileQuery);
+  const isEs = lang === "es";
+  const t = {
+    eyebrow: (isEs ? p?.contact_eyebrow_es : p?.contact_eyebrow_en) || fallback.eyebrow,
+    title: (isEs ? p?.contact_title_es : p?.contact_title_en) || fallback.title,
+    sub: (isEs ? p?.contact_sub_es : p?.contact_sub_en) || fallback.sub,
+    form: fallback.form,
+  };
+
   const [status, setStatus] = useState<"idle" | "sent" | "error">("idle");
   const [form, setForm] = useState({ name: "", email: "", message: "" });
 

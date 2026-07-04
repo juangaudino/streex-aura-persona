@@ -1,8 +1,10 @@
 import { AnimatePresence, motion, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
 import { useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Download } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
+import { profileQuery } from "@/lib/cv-queries";
 import portraitLightAsset from "@/assets/juan-light.png.asset.json";
 import portraitDarkAsset from "@/assets/juan-dark.png.asset.json";
 
@@ -19,7 +21,20 @@ const PORTRAIT_BOTTOM_FADE =
 
 export function Hero() {
   const { lang, theme } = useApp();
-  const t = dict[lang].hero;
+  const fallback = dict[lang].hero;
+  const { data: p } = useQuery(profileQuery);
+  const isEs = lang === "es";
+  const t = {
+    eyebrow: (isEs ? p?.hero_eyebrow_es : p?.hero_eyebrow_en) || fallback.eyebrow,
+    title: ((isEs ? p?.hero_title_es : p?.hero_title_en) as string[] | undefined)?.length
+      ? (isEs ? p!.hero_title_es : p!.hero_title_en)
+      : [...fallback.title],
+    role: (isEs ? p?.hero_role_es : p?.hero_role_en) || fallback.role,
+    location: (isEs ? p?.hero_location_es : p?.hero_location_en) || fallback.location,
+    cta: (isEs ? p?.hero_cta_es : p?.hero_cta_en) || fallback.cta,
+    ctaAlt: (isEs ? p?.hero_cta_alt_es : p?.hero_cta_alt_en) || fallback.ctaAlt,
+  };
+
   const ref = useRef<HTMLDivElement>(null);
 
   const { scrollYProgress } = useScroll({

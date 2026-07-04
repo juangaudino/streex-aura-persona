@@ -1,7 +1,9 @@
 import { ArrowUpRight } from "lucide-react";
 import { motion } from "motion/react";
+import { useQuery } from "@tanstack/react-query";
 import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
+import { profileQuery } from "@/lib/cv-queries";
 import { Reveal, SectionHeader } from "./Reveal";
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -15,12 +17,18 @@ const gradients = [
 
 export function Projects() {
   const { lang } = useApp();
-  const t = dict[lang].projects;
+  const fallback = dict[lang].projects;
+  const { data: p } = useQuery(profileQuery);
+  const isEs = lang === "es";
+  const eyebrow = (isEs ? p?.projects_eyebrow_es : p?.projects_eyebrow_en) || fallback.eyebrow;
+  const title = (isEs ? p?.projects_title_es : p?.projects_title_en) || fallback.title;
+  const t = { eyebrow, title, items: fallback.items };
 
   return (
     <section id="projects" className="px-6 py-32 md:px-10 md:py-48">
       <div className="mx-auto max-w-7xl">
         <SectionHeader eyebrow={t.eyebrow} title={t.title} />
+
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
           {t.items.map((p, i) => (
