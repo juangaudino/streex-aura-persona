@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Briefcase, GraduationCap, Paperclip, FileText } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
-import { timelineQuery, readAttachments, type TimelineItem, type TimelineAttachment } from "@/lib/cv-queries";
+import { timelineQuery, profileQuery, readAttachments, type TimelineItem, type TimelineAttachment } from "@/lib/cv-queries";
 import { Reveal, SectionHeader } from "./Reveal";
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -21,11 +21,23 @@ type Item = {
 
 export function Experience() {
   const { lang } = useApp();
-  const t = dict[lang].experience;
+  const fallback = dict[lang].experience;
   const ref = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState<number | null>(null);
 
   const { data: dbItems } = useQuery(timelineQuery);
+  const { data: p } = useQuery(profileQuery);
+  const isEs = lang === "es";
+  const t = {
+    eyebrow: (isEs ? p?.experience_eyebrow_es : p?.experience_eyebrow_en) || fallback.eyebrow,
+    title: (isEs ? p?.experience_title_es : p?.experience_title_en) || fallback.title,
+    laneWork: (isEs ? p?.experience_lane_work_es : p?.experience_lane_work_en) || fallback.laneWork,
+    laneStudy: (isEs ? p?.experience_lane_study_es : p?.experience_lane_study_en) || fallback.laneStudy,
+    tagWork: (isEs ? p?.experience_tag_work_es : p?.experience_tag_work_en) || fallback.tagWork,
+    tagStudy: (isEs ? p?.experience_tag_study_es : p?.experience_tag_study_en) || fallback.tagStudy,
+    items: fallback.items,
+  };
+
 
   const items: Item[] = useMemo(() => {
     if (dbItems && dbItems.length) {
