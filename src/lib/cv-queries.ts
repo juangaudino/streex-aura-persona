@@ -5,6 +5,39 @@ import type { Database } from "@/integrations/supabase/types";
 export type TimelineItem = Database["public"]["Tables"]["timeline_items"]["Row"];
 export type TimelineKind = Database["public"]["Enums"]["timeline_kind"];
 export type ProfileSettings = Database["public"]["Tables"]["profile_settings"]["Row"];
+export type ProjectRow = Database["public"]["Tables"]["projects"]["Row"];
+export type SkillRow = Database["public"]["Tables"]["skills"]["Row"];
+
+export type AboutStat = { value: string; label_es: string; label_en: string };
+
+export function readAboutStats(raw: unknown): AboutStat[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((s): s is Record<string, unknown> => !!s && typeof s === "object")
+    .map((s) => ({
+      value: String(s.value ?? ""),
+      label_es: String(s.label_es ?? s.label ?? ""),
+      label_en: String(s.label_en ?? s.label ?? ""),
+    }));
+}
+
+export const projectsQuery = queryOptions({
+  queryKey: ["projects"],
+  queryFn: async (): Promise<ProjectRow[]> => {
+    const { data, error } = await supabase.from("projects").select("*").order("sort_order", { ascending: true });
+    if (error) throw error;
+    return data ?? [];
+  },
+});
+
+export const skillsQuery = queryOptions({
+  queryKey: ["skills"],
+  queryFn: async (): Promise<SkillRow[]> => {
+    const { data, error } = await supabase.from("skills").select("*").order("sort_order", { ascending: true });
+    if (error) throw error;
+    return data ?? [];
+  },
+});
 
 export const profileQuery = queryOptions({
   queryKey: ["profile_settings"],
