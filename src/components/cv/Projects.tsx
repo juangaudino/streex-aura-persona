@@ -60,7 +60,8 @@ export function Projects() {
                     hover: { scale: 1.04 },
                   }}
                   transition={{ duration: 0.8, ease }}
-                  className={`absolute inset-0 bg-gradient-to-br ${gradients[i % gradients.length]}`}
+                  className={`absolute inset-0 bg-gradient-to-br ${gradients[i % gradients.length]} bg-cover bg-center`}
+                  style={p.image_url ? { backgroundImage: `url(${p.image_url})` } : undefined}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 to-transparent opacity-60" />
 
