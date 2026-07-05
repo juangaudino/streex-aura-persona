@@ -110,6 +110,33 @@ function AdminPage() {
         <ContentEditor />
 
         <div className="mt-24">
+          <p className="text-eyebrow mb-3">About · Stats</p>
+          <h1 className="text-display text-4xl md:text-5xl">Métricas destacadas</h1>
+          <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+            Los tres números que aparecen en la sección About (por ej. “15+ Años de experiencia”). Editá valor y etiquetas bilingües.
+          </p>
+          <AboutStatsEditor />
+        </div>
+
+        <div className="mt-24">
+          <p className="text-eyebrow mb-3">Campañas / Proyectos</p>
+          <h1 className="text-display text-4xl md:text-5xl">Verticales destacadas</h1>
+          <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+            Sumá, editá o borrá las tarjetas de la sección de campañas.
+          </p>
+          <ProjectsEditor />
+        </div>
+
+        <div className="mt-24">
+          <p className="text-eyebrow mb-3">Skills</p>
+          <h1 className="text-display text-4xl md:text-5xl">Capacidades</h1>
+          <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+            Cada skill pertenece a una categoría (ej. strategy, analytics, leadership). El label de la categoría se puede traducir. Ordená con “sort_order”.
+          </p>
+          <SkillsEditor />
+        </div>
+
+        <div className="mt-24">
           <p className="text-eyebrow mb-3">Timeline</p>
           <h1 className="text-display text-4xl md:text-5xl">Experiencia y educación</h1>
           <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
