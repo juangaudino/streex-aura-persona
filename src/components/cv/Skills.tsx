@@ -50,22 +50,22 @@ export function Skills() {
 
 
         <div className="mb-10 flex flex-wrap gap-2">
-          {keys.map((k) => (
+          {groups.map((g) => (
             <button
-              key={k}
-              onClick={() => setActive(k)}
+              key={g.key}
+              onClick={() => setActive(g.key)}
               className={`relative rounded-full px-5 py-2 text-sm font-medium transition-colors ${
-                active === k ? "text-background" : "text-muted-foreground hover:text-foreground"
+                active === g.key ? "text-background" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {active === k && (
+              {active === g.key && (
                 <motion.span
                   layoutId="skill-pill"
                   transition={{ duration: 0.5, ease }}
                   className="absolute inset-0 rounded-full bg-foreground"
                 />
               )}
-              <span className="relative">{t.groups[k].label}</span>
+              <span className="relative">{g.label}</span>
             </button>
           ))}
         </div>
@@ -79,7 +79,7 @@ export function Skills() {
             transition={{ duration: 0.4, ease }}
             className="flex flex-wrap gap-3"
           >
-            {t.groups[active].items.map((item, i) => (
+            {activeGroup?.items.map((item, i) => (
               <motion.span
                 key={item}
                 initial={{ opacity: 0, y: 8 }}
