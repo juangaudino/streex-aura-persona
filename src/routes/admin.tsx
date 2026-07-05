@@ -889,3 +889,448 @@ function BilingualArea({
     </div>
   );
 }
+
+// ---------------- About stats editor ----------------
+
+function AboutStatsEditor() {
+  const qc = useQueryClient();
+  const { data: profile } = useQuery(profileQuery);
+  const [stats, setStats] = useState<AboutStat[] | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (profile && !stats) setStats(readAboutStats(profile.about_stats));
+  }, [profile, stats]);
+
+  const save = useMutation({
+    mutationFn: async (next: AboutStat[]) => {
+      if (!profile) throw new Error("Perfil no cargado");
+      const { error } = await supabase
+        .from("profile_settings")
+        .update({ about_stats: next as unknown as never })
+        .eq("id", profile.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["profile_settings"] });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    },
+  });
+
+  if (!stats) return <p className="mt-6 text-sm text-muted-foreground">Cargando…</p>;
+
+  const update = (i: number, patch: Partial<AboutStat>) =>
+    setStats(stats.map((s, idx) => (idx === i ? { ...s, ...patch } : s)));
+
+  return (
+    <div className="mt-8 space-y-4">
+      {stats.map((s, i) => (
+        <div key={i} className="rounded-2xl border border-border bg-surface p-5">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+            <TextField label="Valor" value={s.value} onChange={(v) => update(i, { value: v })} placeholder="15+" />
+            <TextField label="Label ES" value={s.label_es} onChange={(v) => update(i, { label_es: v })} className="md:col-span-1" />
+            <TextField label="Label EN" value={s.label_en} onChange={(v) => update(i, { label_en: v })} className="md:col-span-1" />
+            <div className="flex items-end justify-end">
+              <button
+                type="button"
+                onClick={() => setStats(stats.filter((_, idx) => idx !== i))}
+                className="inline-flex items-center gap-1.5 rounded-full border border-destructive/40 px-3 py-1.5 text-xs text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> Quitar
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={() => setStats([...stats, { value: "", label_es: "", label_en: "" }])}
+          className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-xs hover:bg-secondary"
+        >
+          <Plus className="h-3.5 w-3.5" /> Añadir métrica
+        </button>
+        <div className="flex items-center gap-2">
+          {saved && <span className="text-xs text-accent">Guardado ✓</span>}
+          <button
+            onClick={() => save.mutate(stats)}
+            disabled={save.isPending}
+            className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background disabled:opacity-50"
+          >
+            {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            {save.isPending ? "Guardando…" : "Guardar métricas"}
+          </button>
+        </div>
+      </div>
+      {save.error && <p className="text-sm text-destructive">{(save.error as Error).message}</p>}
+    </div>
+  );
+}
+
+// ---------------- Projects editor ----------------
+
+type ProjectDraft = {
+  id?: string;
+  name_es: string;
+  name_en: string;
+  desc_es: string;
+  desc_en: string;
+  stack: string;
+  link: string;
+  image_url: string;
+  sort_order: number;
+};
+
+const emptyProject = (nextOrder: number): ProjectDraft => ({
+  name_es: "", name_en: "", desc_es: "", desc_en: "", stack: "", link: "", image_url: "", sort_order: nextOrder,
+});
+
+function ProjectsEditor() {
+  const qc = useQueryClient();
+  const { data: rows, isLoading } = useQuery(projectsQuery);
+  const [editing, setEditing] = useState<ProjectDraft | null>(null);
+  const items = rows ?? [];
+  const nextOrder = useMemo(
+    () => (items.length ? Math.max(...items.map((i) => i.sort_order)) + 10 : 10),
+    [items],
+  );
+
+  const save = useMutation({
+    mutationFn: async (d: ProjectDraft) => {
+      const payload = {
+        name_es: d.name_es, name_en: d.name_en,
+        desc_es: d.desc_es, desc_en: d.desc_en,
+        stack: d.stack, link: d.link, image_url: d.image_url,
+        sort_order: d.sort_order,
+      };
+      if (d.id) {
+        const { error } = await supabase.from("projects").update(payload).eq("id", d.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("projects").insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      setEditing(null);
+    },
+  });
+
+  const del = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("projects").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["projects"] }),
+  });
+
+  return (
+    <div className="mt-8">
+      <div className="mb-6 flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {isLoading ? "Cargando…" : `${items.length} campaña${items.length === 1 ? "" : "s"}`}
+        </p>
+        <button
+          onClick={() => setEditing(emptyProject(nextOrder))}
+          className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background"
+        >
+          <Plus className="h-3.5 w-3.5" /> Nueva campaña
+        </button>
+      </div>
+
+      <ul className="space-y-3">
+        {items.map((it) => (
+          <li key={it.id} className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5 md:flex-row md:items-center md:justify-between">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{it.stack || "—"}</span>
+                <span className="text-[10px] text-muted-foreground">order {it.sort_order}</span>
+              </div>
+              <h3 className="text-display mt-1 truncate text-lg">{it.name_es || it.name_en}</h3>
+              <p className="truncate text-sm text-muted-foreground">{it.desc_es || it.desc_en}</p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                onClick={() => setEditing({
+                  id: it.id, name_es: it.name_es, name_en: it.name_en,
+                  desc_es: it.desc_es, desc_en: it.desc_en,
+                  stack: it.stack, link: it.link, image_url: it.image_url, sort_order: it.sort_order,
+                })}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs hover:bg-secondary"
+              >
+                <Pencil className="h-3.5 w-3.5" /> Editar
+              </button>
+              <button
+                onClick={() => { if (confirm("¿Eliminar esta campaña?")) del.mutate(it.id); }}
+                className="inline-flex items-center gap-1.5 rounded-full border border-destructive/40 px-3 py-1.5 text-xs text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> Borrar
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <AnimatePresence>
+        {editing && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/30 backdrop-blur-sm md:items-center"
+            onClick={() => setEditing(null)}
+          >
+            <motion.form
+              initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }} transition={{ duration: 0.4, ease }}
+              onClick={(e) => e.stopPropagation()}
+              onSubmit={(e) => { e.preventDefault(); save.mutate(editing); }}
+              className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-background p-6 md:rounded-3xl md:p-8"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-eyebrow">{editing.id ? "Editar" : "Nueva"}</p>
+                  <h2 className="text-display mt-1 text-2xl">Campaña</h2>
+                </div>
+                <button type="button" onClick={() => setEditing(null)} className="rounded-full p-2 text-muted-foreground hover:bg-secondary hover:text-foreground">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="mt-6 grid grid-cols-2 gap-4">
+                <TextField label="Nombre (ES)" value={editing.name_es} onChange={(v) => setEditing({ ...editing, name_es: v })} className="col-span-2 md:col-span-1" />
+                <TextField label="Name (EN)" value={editing.name_en} onChange={(v) => setEditing({ ...editing, name_en: v })} className="col-span-2 md:col-span-1" />
+                <TextArea label="Descripción (ES)" value={editing.desc_es} onChange={(v) => setEditing({ ...editing, desc_es: v })} className="col-span-2" />
+                <TextArea label="Description (EN)" value={editing.desc_en} onChange={(v) => setEditing({ ...editing, desc_en: v })} className="col-span-2" />
+                <TextField label="Stack / Tag" value={editing.stack} onChange={(v) => setEditing({ ...editing, stack: v })} className="col-span-2 md:col-span-1" placeholder="OOH · LATAM" />
+                <TextField label="Sort order" type="number" value={String(editing.sort_order)} onChange={(v) => setEditing({ ...editing, sort_order: Number(v) || 0 })} className="col-span-2 md:col-span-1" />
+                <TextField label="Link (opcional)" value={editing.link} onChange={(v) => setEditing({ ...editing, link: v })} className="col-span-2" placeholder="https://…" />
+                <TextField label="Image URL (opcional)" value={editing.image_url} onChange={(v) => setEditing({ ...editing, image_url: v })} className="col-span-2" placeholder="https://…" />
+              </div>
+
+              {save.error && <p className="mt-4 text-sm text-destructive">{(save.error as Error).message}</p>}
+
+              <div className="mt-8 flex items-center justify-end gap-2">
+                <button type="button" onClick={() => setEditing(null)} className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground hover:text-foreground">Cancelar</button>
+                <button type="submit" disabled={save.isPending} className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background disabled:opacity-50">
+                  <Save className="h-4 w-4" /> {save.isPending ? "Guardando…" : "Guardar"}
+                </button>
+              </div>
+            </motion.form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ---------------- Skills editor ----------------
+
+type SkillDraft = {
+  id?: string;
+  name: string;
+  category: string;
+  category_label_es: string;
+  category_label_en: string;
+  sort_order: number;
+};
+
+const emptySkill = (nextOrder: number, category = "", label_es = "", label_en = ""): SkillDraft => ({
+  name: "", category, category_label_es: label_es, category_label_en: label_en, sort_order: nextOrder,
+});
+
+function SkillsEditor() {
+  const qc = useQueryClient();
+  const { data: rows, isLoading } = useQuery(skillsQuery);
+  const [editing, setEditing] = useState<SkillDraft | null>(null);
+  const items = rows ?? [];
+  const nextOrder = useMemo(
+    () => (items.length ? Math.max(...items.map((i) => i.sort_order)) + 1 : 0),
+    [items],
+  );
+
+  const grouped = useMemo(() => {
+    const map = new Map<string, { category: string; label_es: string; label_en: string; items: SkillRow[] }>();
+    for (const r of items) {
+      if (!map.has(r.category)) map.set(r.category, { category: r.category, label_es: r.category_label_es, label_en: r.category_label_en, items: [] });
+      map.get(r.category)!.items.push(r);
+    }
+    return Array.from(map.values());
+  }, [items]);
+
+  const save = useMutation({
+    mutationFn: async (d: SkillDraft) => {
+      const payload = {
+        name: d.name, category: d.category,
+        category_label_es: d.category_label_es, category_label_en: d.category_label_en,
+        sort_order: d.sort_order,
+      };
+      if (d.id) {
+        const { error } = await supabase.from("skills").update(payload).eq("id", d.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("skills").insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["skills"] }); setEditing(null); },
+  });
+
+  const del = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("skills").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["skills"] }),
+  });
+
+  // Bulk update a category's labels across all its rows
+  const renameCategory = useMutation({
+    mutationFn: async ({ category, label_es, label_en }: { category: string; label_es: string; label_en: string }) => {
+      const { error } = await supabase
+        .from("skills")
+        .update({ category_label_es: label_es, category_label_en: label_en })
+        .eq("category", category);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["skills"] }),
+  });
+
+  return (
+    <div className="mt-8">
+      <div className="mb-6 flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {isLoading ? "Cargando…" : `${items.length} skill${items.length === 1 ? "" : "s"} · ${grouped.length} categoría${grouped.length === 1 ? "" : "s"}`}
+        </p>
+        <button
+          onClick={() => setEditing(emptySkill(nextOrder))}
+          className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background"
+        >
+          <Plus className="h-3.5 w-3.5" /> Nueva skill
+        </button>
+      </div>
+
+      <div className="space-y-6">
+        {grouped.map((g) => (
+          <SkillCategoryCard
+            key={g.category}
+            group={g}
+            onAddSkill={() => setEditing(emptySkill(nextOrder, g.category, g.label_es, g.label_en))}
+            onEdit={(s) => setEditing({
+              id: s.id, name: s.name, category: s.category,
+              category_label_es: s.category_label_es, category_label_en: s.category_label_en,
+              sort_order: s.sort_order,
+            })}
+            onDelete={(id) => { if (confirm("¿Eliminar esta skill?")) del.mutate(id); }}
+            onRenameCategory={(label_es, label_en) => renameCategory.mutate({ category: g.category, label_es, label_en })}
+            renaming={renameCategory.isPending}
+          />
+        ))}
+      </div>
+
+      <AnimatePresence>
+        {editing && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/30 backdrop-blur-sm md:items-center"
+            onClick={() => setEditing(null)}
+          >
+            <motion.form
+              initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }} transition={{ duration: 0.4, ease }}
+              onClick={(e) => e.stopPropagation()}
+              onSubmit={(e) => { e.preventDefault(); save.mutate(editing); }}
+              className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-t-3xl bg-background p-6 md:rounded-3xl md:p-8"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-eyebrow">{editing.id ? "Editar" : "Nueva"}</p>
+                  <h2 className="text-display mt-1 text-2xl">Skill</h2>
+                </div>
+                <button type="button" onClick={() => setEditing(null)} className="rounded-full p-2 text-muted-foreground hover:bg-secondary hover:text-foreground">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="mt-6 grid grid-cols-2 gap-4">
+                <TextField label="Nombre" value={editing.name} onChange={(v) => setEditing({ ...editing, name: v })} className="col-span-2" placeholder="Media Planning" />
+                <TextField label="Categoría (id interno)" value={editing.category} onChange={(v) => setEditing({ ...editing, category: v })} className="col-span-2 md:col-span-1" placeholder="strategy" />
+                <TextField label="Sort order" type="number" value={String(editing.sort_order)} onChange={(v) => setEditing({ ...editing, sort_order: Number(v) || 0 })} className="col-span-2 md:col-span-1" />
+                <TextField label="Label categoría (ES)" value={editing.category_label_es} onChange={(v) => setEditing({ ...editing, category_label_es: v })} className="col-span-2 md:col-span-1" />
+                <TextField label="Label categoría (EN)" value={editing.category_label_en} onChange={(v) => setEditing({ ...editing, category_label_en: v })} className="col-span-2 md:col-span-1" />
+              </div>
+
+              <p className="mt-3 text-xs text-muted-foreground">
+                Tip: para agrupar skills en la misma categoría, usá el mismo id (por ej. <code>strategy</code>) y los mismos labels.
+              </p>
+
+              {save.error && <p className="mt-4 text-sm text-destructive">{(save.error as Error).message}</p>}
+
+              <div className="mt-8 flex items-center justify-end gap-2">
+                <button type="button" onClick={() => setEditing(null)} className="rounded-full border border-border px-4 py-2 text-sm text-muted-foreground hover:text-foreground">Cancelar</button>
+                <button type="submit" disabled={save.isPending} className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background disabled:opacity-50">
+                  <Save className="h-4 w-4" /> {save.isPending ? "Guardando…" : "Guardar"}
+                </button>
+              </div>
+            </motion.form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function SkillCategoryCard({
+  group, onAddSkill, onEdit, onDelete, onRenameCategory, renaming,
+}: {
+  group: { category: string; label_es: string; label_en: string; items: SkillRow[] };
+  onAddSkill: () => void;
+  onEdit: (s: SkillRow) => void;
+  onDelete: (id: string) => void;
+  onRenameCategory: (label_es: string, label_en: string) => void;
+  renaming: boolean;
+}) {
+  const [labelEs, setLabelEs] = useState(group.label_es);
+  const [labelEn, setLabelEn] = useState(group.label_en);
+  useEffect(() => { setLabelEs(group.label_es); setLabelEn(group.label_en); }, [group.label_es, group.label_en]);
+  const dirty = labelEs !== group.label_es || labelEn !== group.label_en;
+
+  return (
+    <div className="rounded-2xl border border-border bg-surface p-5">
+      <div className="mb-4 flex flex-wrap items-end gap-3">
+        <div className="flex-1 min-w-[220px]">
+          <p className="text-eyebrow mb-2">Categoría · <code className="text-muted-foreground">{group.category}</code></p>
+          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+            <input value={labelEs} onChange={(e) => setLabelEs(e.target.value)} placeholder="Label ES" className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground" />
+            <input value={labelEn} onChange={(e) => setLabelEn(e.target.value)} placeholder="Label EN" className="rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-foreground" />
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {dirty && (
+            <button
+              type="button"
+              onClick={() => onRenameCategory(labelEs, labelEn)}
+              disabled={renaming}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs hover:bg-secondary disabled:opacity-50"
+            >
+              <Save className="h-3.5 w-3.5" /> Guardar labels
+            </button>
+          )}
+          <button type="button" onClick={onAddSkill} className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-xs font-medium text-background">
+            <Plus className="h-3.5 w-3.5" /> Añadir
+          </button>
+        </div>
+      </div>
+
+      <ul className="flex flex-wrap gap-2">
+        {group.items.map((s) => (
+          <li key={s.id} className="group inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-xs">
+            <button type="button" onClick={() => onEdit(s)} className="hover:text-foreground">{s.name}</button>
+            <span className="text-[10px] text-muted-foreground">#{s.sort_order}</span>
+            <button type="button" onClick={() => onDelete(s.id)} className="text-muted-foreground hover:text-destructive">
+              <X className="h-3 w-3" />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
