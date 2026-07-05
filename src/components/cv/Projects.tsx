@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import { useQuery } from "@tanstack/react-query";
 import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
-import { profileQuery } from "@/lib/cv-queries";
+import { profileQuery, projectsQuery } from "@/lib/cv-queries";
 import { Reveal, SectionHeader } from "./Reveal";
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -19,10 +19,22 @@ export function Projects() {
   const { lang } = useApp();
   const fallback = dict[lang].projects;
   const { data: p } = useQuery(profileQuery);
+  const { data: rows } = useQuery(projectsQuery);
   const isEs = lang === "es";
   const eyebrow = (isEs ? p?.projects_eyebrow_es : p?.projects_eyebrow_en) || fallback.eyebrow;
   const title = (isEs ? p?.projects_title_es : p?.projects_title_en) || fallback.title;
-  const t = { eyebrow, title, items: fallback.items };
+
+  const items = rows && rows.length
+    ? rows.map((r) => ({
+        name: (isEs ? r.name_es : r.name_en) || r.name_es || r.name_en,
+        desc: (isEs ? r.desc_es : r.desc_en) || r.desc_es || r.desc_en,
+        stack: r.stack,
+        link: r.link,
+        image_url: r.image_url,
+      }))
+    : fallback.items.map((i) => ({ ...i, link: "#", image_url: "" }));
+
+  const t = { eyebrow, title, items };
 
   return (
     <section id="projects" className="px-6 py-32 md:px-10 md:py-48">
