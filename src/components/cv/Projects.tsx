@@ -46,7 +46,9 @@ export function Projects() {
           {t.items.map((p, i) => (
             <Reveal key={p.name} delay={i * 0.06}>
               <motion.a
-                href="#"
+                href={p.link || "#"}
+                target={p.link && p.link !== "#" ? "_blank" : undefined}
+                rel={p.link && p.link !== "#" ? "noreferrer" : undefined}
                 whileHover="hover"
                 initial="rest"
                 animate="rest"
