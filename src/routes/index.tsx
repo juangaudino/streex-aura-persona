@@ -10,6 +10,8 @@ import { Projects } from "@/components/cv/Projects";
 import { Skills } from "@/components/cv/Skills";
 import { Contact } from "@/components/cv/Contact";
 import { Footer } from "@/components/cv/Footer";
+import { NoiseOverlay } from "@/components/cv/NoiseOverlay";
+import { ScrollIndicator } from "@/components/cv/ScrollIndicator";
 
 export const Route = createFileRoute("/")({
   head: () => ({
