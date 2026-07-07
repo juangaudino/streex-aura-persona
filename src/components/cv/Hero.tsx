@@ -1,10 +1,11 @@
-import { AnimatePresence, motion, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
-import { useEffect, useRef } from "react";
+import { AnimatePresence, animate, motion, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Download } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
 import { profileQuery } from "@/lib/cv-queries";
+import { MagneticButton } from "./MagneticButton";
 import portraitLightAsset from "@/assets/juan-light.png.asset.json";
 import portraitDarkAsset from "@/assets/juan-dark.png.asset.json";
 
@@ -44,6 +45,40 @@ export function Hero() {
   const imageY = useTransform(scrollYProgress, [0, 1], [0, 120]);
   const textY = useTransform(scrollYProgress, [0, 1], [0, -40]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+
+  // Distortion filter for the hero name on hover
+  const filterId = "hero-distort";
+  const displaceRef = useRef<SVGFEDisplacementMapElement>(null);
+  const turbRef = useRef<SVGFETurbulenceElement>(null);
+  const [nameHover, setNameHover] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!displaceRef.current || !turbRef.current) return;
+    const from = Number(displaceRef.current.getAttribute("scale") ?? 0);
+    const to = nameHover ? 18 : 0;
+    const controls = animate(from, to, {
+      duration: 0.55,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (v) => {
+        displaceRef.current?.setAttribute("scale", String(v));
+      },
+    });
+    // Slowly drift the turbulence seed so the noise pattern shimmers
+    let raf = 0;
+    let t = 0;
+    const tick = () => {
+      t += 0.008;
+      turbRef.current?.setAttribute("baseFrequency", `${0.012 + Math.sin(t) * 0.004} ${0.02 + Math.cos(t) * 0.005}`);
+      raf = requestAnimationFrame(tick);
+    };
+    if (nameHover) raf = requestAnimationFrame(tick);
+    return () => {
+      controls.stop();
+      cancelAnimationFrame(raf);
+    };
+  }, [nameHover]);
 
   // Cursor parallax — normalized (-1..1) from hero center
   const mx = useMotionValue(0);
@@ -122,6 +157,23 @@ export function Hero() {
         }}
       />
 
+      {/* SVG filter for the hero name distortion on hover */}
+      <svg aria-hidden className="pointer-events-none absolute h-0 w-0 overflow-hidden">
+        <defs>
+          <filter id={filterId} x="-10%" y="-10%" width="120%" height="120%">
+            <feTurbulence
+              ref={turbRef}
+              type="fractalNoise"
+              baseFrequency="0.012 0.02"
+              numOctaves="2"
+              seed="7"
+              result="noise"
+            />
+            <feDisplacementMap ref={displaceRef} in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+      </svg>
+
       <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-12 px-6 md:grid-cols-12 md:px-10">
         <motion.div style={{ y: textY, opacity }} className="md:col-span-7">
           <motion.p
@@ -133,7 +185,12 @@ export function Hero() {
             {t.eyebrow}
           </motion.p>
 
-          <h1 className="text-display text-5xl sm:text-7xl md:text-8xl lg:text-[9rem]">
+          <h1
+            onPointerEnter={() => setNameHover(true)}
+            onPointerLeave={() => setNameHover(false)}
+            style={{ filter: `url(#${filterId})` }}
+            className="text-display cursor-default text-5xl sm:text-7xl md:text-8xl lg:text-[9rem]"
+          >
             {t.title.map((line, lineIdx) => (
               <span key={lineIdx} className="block overflow-hidden">
                 <motion.span
@@ -168,23 +225,24 @@ export function Hero() {
             transition={{ duration: 0.8, ease, delay: 0.75 }}
             className="mt-10 flex flex-wrap items-center gap-3"
           >
-            <a
+            <MagneticButton
               href="/cv.pdf"
               download
               className="group inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-transform hover:scale-[1.03]"
             >
               <Download className="h-4 w-4" />
               {t.cta}
-            </a>
-            <a
+            </MagneticButton>
+            <MagneticButton
               href="#contact"
               className="group inline-flex items-center gap-2 rounded-full border border-border px-6 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
             >
               {t.ctaAlt}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </a>
+            </MagneticButton>
           </motion.div>
         </motion.div>
+
 
         <motion.div
           style={{ y: imageY }}
