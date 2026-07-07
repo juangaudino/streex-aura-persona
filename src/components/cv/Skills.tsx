@@ -44,7 +44,7 @@ export function Skills() {
   const t = { eyebrow, title };
 
   return (
-    <section className="bg-surface px-6 py-32 md:px-10 md:py-48">
+    <section id="skills" className="bg-surface px-6 py-32 md:px-10 md:py-48">
       <div className="mx-auto max-w-7xl">
         <SectionHeader eyebrow={t.eyebrow} title={t.title} />
 
