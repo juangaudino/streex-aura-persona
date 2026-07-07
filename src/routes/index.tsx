@@ -46,6 +46,8 @@ function Page() {
       <Skills />
       <Contact />
       <Footer />
+      <NoiseOverlay opacity={0.035} />
+      <ScrollIndicator />
     </main>
   );
 }
