@@ -1,64 +1,93 @@
 
-# Plan: Panel Admin para editar el CV
+# Plan: Efecto WOW en 3 fases
 
-Activo **Lovable Cloud** (base de datos + auth + IA) y muevo todo el contenido del sitio desde `src/i18n/dictionary.ts` a la base de datos, con un panel `/admin` protegido por Google sign-in + rol admin.
+Elegiste tres upgrades. Los implemento en este orden para que el impacto se sienta desde el primer scroll y crezca a medida que el visitante baja.
 
-## 1. Backend (Lovable Cloud)
+---
 
-**Auth**: Google OAuth (managed) + email/password como fallback.
+## Fase 1 — Hero cinemático + cursor magnético
 
-**Tablas** (todas con RLS: lectura pública, escritura solo admin):
+**Qué cambia visualmente**
+- El nombre gigante se distorsiona sutilmente al pasar el mouse (efecto "displace" en las letras + weight shift).
+- Los botones CTA "Download CV" y "Get in touch" ganan un efecto imán: el botón se inclina hacia el cursor cuando está cerca.
+- Se agrega una capa de grano/noise animado muy sutil sobre la aurora existente (opacity 3–5%).
+- Un contador de scroll minimalista abajo a la derecha ("01 / 06") que se actualiza según la sección visible.
+- Mobile: se desactivan magnético y distorsión, se conserva el noise.
 
-- `profile_settings` (singleton) — hero, about, contact, foto
-- `timeline_items` — id, kind (`work`|`study`), title_es, title_en, org, location, start_date, end_date (nullable = "actual"), description_es, description_en, bullets_es[], bullets_en[], sort_order
-- `projects` — id, title, description_es, description_en, tags[], link, image_url, sort_order
-- `skills` — id, name, category, sort_order
-- `user_roles` + enum `app_role` + función `has_role()` (patrón seguro estándar)
+**Técnico**
+- Motion for React + `useMotionValue` / `useTransform` (ya está instalado).
+- Componente nuevo `MagneticButton` reutilizable, con guard de `prefers-reduced-motion` y `hover: none`.
+- SVG filter `<feTurbulence>` + `feDisplacementMap` para la distorsión del H1, activado por hover con transición de amplitude.
+- Noise: canvas 128×128 generado una sola vez, tileado con `background-image` y `animation: translate` de 200ms.
+- Scroll indicator: `IntersectionObserver` sobre las secciones existentes.
 
-**Policies**:
-- `SELECT` público (anon + authenticated) en todo lo de contenido
-- `INSERT/UPDATE/DELETE` solo si `has_role(auth.uid(), 'admin')`
-- `user_roles`: solo authenticated puede leer los propios; nadie escribe desde el cliente (se asigna vía SQL/función)
+---
 
-**Bootstrap admin**: te asigno el rol `admin` a tu user_id la primera vez que inicies sesión (via SQL insert después de tu primer login con Google).
+## Fase 2 — Case studies fullscreen para campañas
 
-## 2. Traducción con IA
+**Qué cambia visualmente**
+- Click en cualquier project card abre un modal fullscreen con animación tipo Apple: la card se expande desde su posición hasta ocupar toda la pantalla (`layoutId`).
+- Dentro del case study:
+  - **Hero del caso**: título grande + cliente + año + verticales.
+  - **Métricas animadas**: 3–4 counters que corren de 0 al valor final al entrar en viewport ($ invertido, impresiones, ciudades, lift).
+  - **Contexto** (challenge) → **Estrategia** (approach) → **Resultado** (outcome) en 3 bloques narrativos.
+  - **Galería**: hasta 6 imágenes en grid asimétrico, click para lightbox.
+- Botón "Close" arriba a la derecha y `ESC` cierra. Scroll interno del modal.
 
-Server function `translate-to-english` usando **Lovable AI Gateway** (`google/gemini-3-flash-preview`, gratis en el free tier). En cada campo bilingüe del admin habrá un botón "✨ Traducir a EN" que rellena el campo EN a partir del ES; el resultado queda editable.
+**Admin — CRUD extendido para projects**
+La tabla `projects` gana columnas nuevas (bilingües donde corresponde):
+- `client`, `year`, `verticals[]`
+- `challenge_es`, `challenge_en`
+- `approach_es`, `approach_en`
+- `outcome_es`, `outcome_en`
+- `metrics jsonb` → `[{value, label_es, label_en, prefix, suffix}]`
+- `gallery jsonb` → `[{url, path, caption_es, caption_en}]`
 
-## 3. Frontend
+En Admin se agrega un editor expandible por proyecto con secciones colapsables para challenge/approach/outcome, un editor de métricas (add/remove) y un uploader de galería (mismo patrón que attachments de timeline).
 
-**Rutas nuevas**:
-- `/auth` — login público (Google + email/password)
-- `/_authenticated/admin` — dashboard con tabs: Perfil · Timeline · Proyectos · Skills
+**Técnico**
+- Modal con `AnimatePresence` + `layoutId` compartido entre card y modal para el morph.
+- Counters con `useMotionValue` + `animate()` (Motion) disparados por `useInView`.
+- Nueva migración: columnas + bucket `cv-projects` (público read, admin write).
+- `readMetrics` y `readGallery` helpers en `cv-queries.ts`, tipados.
+- Fallback: si un proyecto no tiene case study cargado, la card sigue funcionando como está hoy (sin modal).
 
-**UI admin** (shadcn + estilo Apple existente):
-- Cada tab con lista + drawer/dialog para crear/editar
-- Drag handle para reordenar (dnd-kit) → actualiza `sort_order`
-- Toggle work/study en timeline items, date pickers, chip para "presente"
-- Preview link al home para ver los cambios en vivo
+---
 
-**Migración de datos**: seed migration que inserta todo el contenido actual de `dictionary.ts` en las tablas, así arrancás con tu CV real ya cargado.
+## Fase 3 — Mapa LATAM→US interactivo
 
-**Refactor del sitio público**:
-- `Hero`, `About`, `Experience`, `Projects`, `Skills`, `Contact` pasan a leer con TanStack Query (`useSuspenseQuery`) desde server functions públicas (publishable key + policy anon SELECT)
-- El toggle ES/EN sigue funcionando; simplemente elige la columna `_es` o `_en`
-- `dictionary.ts` queda solo con labels de UI (nav, botones, form)
+**Qué cambia visualmente**
+- Nueva subsección al final de About (o inicio de Experience) titulada "Journey": mapa SVG estilizado de LATAM + sur de US.
+- Los mercados donde operaste aparecen como puntos que pulsan (Buenos Aires, São Paulo, CDMX, Bogotá, Santiago, Lima, Salt Lake City, etc. — editables desde Admin).
+- Una línea animada traza el journey Argentina → Salt Lake City al entrar en viewport (SVG `pathLength` de 0 a 1).
+- Hover sobre un punto muestra un tooltip: ciudad, país, año en que operaste, tipo de campaña.
+- Paleta consistente con el resto (accent color para los puntos activos, muted para los inactivos).
 
-## 4. Orden de implementación
+**Admin — nueva sección "Markets"**
+Nueva tabla `markets`:
+- `id`, `city`, `country`, `country_code`, `lat`, `lng`, `year_from`, `year_to`, `note_es`, `note_en`, `is_home boolean`, `sort_order`.
 
-1. Activar Cloud + crear tablas, RLS, seed con tu CV actual
-2. Configurar Google OAuth + user_roles + asignarte admin
-3. Refactorizar componentes públicos para leer de la DB
-4. Construir `/auth` y `/_authenticated/admin` con CRUD por sección
-5. Server function de traducción IA + botón en el form
-6. Reordenamiento drag & drop
+Editor en Admin con lista de mercados, drag/reorder no necesario (usa sort_order numérico como el resto). El path del journey se calcula automáticamente conectando los puntos con `is_home` primero o por orden.
 
-## Notas técnicas
+**Técnico**
+- SVG estático de fondo (LATAM + US sur) generado una sola vez, guardado en `src/assets/`. Proyección Mercator simplificada.
+- Función `latLngToSvg(lat, lng)` que mapea coords geográficas a coords SVG del asset.
+- Line drawing con Motion: `<motion.path strokeDasharray={pathLength} strokeDashoffset animate={{...}}>`.
+- Puntos pulsantes: círculo SVG + `animate` en `r` y `opacity` en loop.
+- Tooltip con Radix `HoverCard` para accesibilidad.
 
-- Foto del hero: subida a Storage bucket público `assets/` (reemplaza las URLs hardcoded del CDN)
-- Bullets se guardan como `text[]` en Postgres
-- `end_date` null = "Presente/Actual" en la UI
-- Todo el admin en un solo idioma de UI (español, ya que sos vos el único que lo usa)
+---
 
-¿Le doy?
+## Orden de entrega
+1. **Fase 1** primero — es la más rápida y transforma la primera impresión.
+2. **Fase 2** — el diferencial más grande para reclutadores (case studies reales).
+3. **Fase 3** — el remate emocional del storytelling LATAM → US.
+
+Cada fase queda navegable y editable desde Admin al terminarla, sin dependencias entre fases. Si querés cortar después de la 1 o la 2, el sitio queda coherente igual.
+
+---
+
+## Notas de scope
+- No toco el sistema de theming ni la paleta actual — todo suma sobre los tokens existentes.
+- Mobile-first en las tres fases: cursor magnético off, modal fullscreen usa sheet vertical, mapa se rota a formato vertical con lista.
+- Todo el contenido nuevo (case studies, mercados) es editable desde Admin. Nada hardcodeado.
