@@ -1,10 +1,11 @@
-import { AnimatePresence, motion, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
-import { useEffect, useRef } from "react";
+import { AnimatePresence, animate, motion, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Download } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
 import { profileQuery } from "@/lib/cv-queries";
+import { MagneticButton } from "./MagneticButton";
 import portraitLightAsset from "@/assets/juan-light.png.asset.json";
 import portraitDarkAsset from "@/assets/juan-dark.png.asset.json";
 
