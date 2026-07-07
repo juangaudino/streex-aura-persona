@@ -46,6 +46,40 @@ export function Hero() {
   const textY = useTransform(scrollYProgress, [0, 1], [0, -40]);
   const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
+  // Distortion filter for the hero name on hover
+  const filterId = "hero-distort";
+  const displaceRef = useRef<SVGFEDisplacementMapElement>(null);
+  const turbRef = useRef<SVGFETurbulenceElement>(null);
+  const [nameHover, setNameHover] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!displaceRef.current || !turbRef.current) return;
+    const from = Number(displaceRef.current.getAttribute("scale") ?? 0);
+    const to = nameHover ? 18 : 0;
+    const controls = animate(from, to, {
+      duration: 0.55,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (v) => {
+        displaceRef.current?.setAttribute("scale", String(v));
+      },
+    });
+    // Slowly drift the turbulence seed so the noise pattern shimmers
+    let raf = 0;
+    let t = 0;
+    const tick = () => {
+      t += 0.008;
+      turbRef.current?.setAttribute("baseFrequency", `${0.012 + Math.sin(t) * 0.004} ${0.02 + Math.cos(t) * 0.005}`);
+      raf = requestAnimationFrame(tick);
+    };
+    if (nameHover) raf = requestAnimationFrame(tick);
+    return () => {
+      controls.stop();
+      cancelAnimationFrame(raf);
+    };
+  }, [nameHover]);
+
   // Cursor parallax — normalized (-1..1) from hero center
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
