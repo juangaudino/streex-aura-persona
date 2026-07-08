@@ -21,6 +21,46 @@ export function readAboutStats(raw: unknown): AboutStat[] {
     }));
 }
 
+export type ProjectMetric = {
+  value: string;
+  prefix: string;
+  suffix: string;
+  label_es: string;
+  label_en: string;
+};
+
+export function readMetrics(raw: unknown): ProjectMetric[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((m): m is Record<string, unknown> => !!m && typeof m === "object")
+    .map((m) => ({
+      value: String(m.value ?? ""),
+      prefix: String(m.prefix ?? ""),
+      suffix: String(m.suffix ?? ""),
+      label_es: String(m.label_es ?? m.label ?? ""),
+      label_en: String(m.label_en ?? m.label ?? ""),
+    }));
+}
+
+export type ProjectGalleryItem = {
+  path: string;
+  url: string;
+  caption_es: string;
+  caption_en: string;
+};
+
+export function readGallery(raw: unknown): ProjectGalleryItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((g): g is Record<string, unknown> => !!g && typeof g === "object" && typeof (g as any).url === "string")
+    .map((g) => ({
+      path: String(g.path ?? ""),
+      url: String(g.url ?? ""),
+      caption_es: String(g.caption_es ?? ""),
+      caption_en: String(g.caption_en ?? ""),
+    }));
+}
+
 export const projectsQuery = queryOptions({
   queryKey: ["projects"],
   queryFn: async (): Promise<ProjectRow[]> => {
