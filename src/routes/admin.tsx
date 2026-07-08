@@ -980,11 +980,40 @@ type ProjectDraft = {
   link: string;
   image_url: string;
   sort_order: number;
+  client: string;
+  year: string;
+  verticals: string[];
+  challenge_es: string;
+  challenge_en: string;
+  approach_es: string;
+  approach_en: string;
+  outcome_es: string;
+  outcome_en: string;
+  metrics: ProjectMetric[];
+  gallery: ProjectGalleryItem[];
 };
 
 const emptyProject = (nextOrder: number): ProjectDraft => ({
   name_es: "", name_en: "", desc_es: "", desc_en: "", stack: "", link: "", image_url: "", sort_order: nextOrder,
+  client: "", year: "", verticals: [],
+  challenge_es: "", challenge_en: "", approach_es: "", approach_en: "", outcome_es: "", outcome_en: "",
+  metrics: [], gallery: [],
 });
+
+function projectRowToDraft(it: ProjectRow): ProjectDraft {
+  return {
+    id: it.id,
+    name_es: it.name_es, name_en: it.name_en,
+    desc_es: it.desc_es, desc_en: it.desc_en,
+    stack: it.stack, link: it.link, image_url: it.image_url, sort_order: it.sort_order,
+    client: it.client ?? "", year: it.year ?? "", verticals: it.verticals ?? [],
+    challenge_es: it.challenge_es ?? "", challenge_en: it.challenge_en ?? "",
+    approach_es: it.approach_es ?? "", approach_en: it.approach_en ?? "",
+    outcome_es: it.outcome_es ?? "", outcome_en: it.outcome_en ?? "",
+    metrics: readMetrics(it.metrics),
+    gallery: readGallery(it.gallery),
+  };
+}
 
 function ProjectsEditor() {
   const qc = useQueryClient();
@@ -1003,6 +1032,12 @@ function ProjectsEditor() {
         desc_es: d.desc_es, desc_en: d.desc_en,
         stack: d.stack, link: d.link, image_url: d.image_url,
         sort_order: d.sort_order,
+        client: d.client, year: d.year, verticals: d.verticals,
+        challenge_es: d.challenge_es, challenge_en: d.challenge_en,
+        approach_es: d.approach_es, approach_en: d.approach_en,
+        outcome_es: d.outcome_es, outcome_en: d.outcome_en,
+        metrics: d.metrics as unknown as never,
+        gallery: d.gallery as unknown as never,
       };
       if (d.id) {
         const { error } = await supabase.from("projects").update(payload).eq("id", d.id);
@@ -1046,6 +1081,8 @@ function ProjectsEditor() {
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-muted-foreground">{it.stack || "—"}</span>
+                {it.year && <span className="text-[10px] text-muted-foreground">{it.year}</span>}
+                {it.client && <span className="text-[10px] text-muted-foreground">· {it.client}</span>}
                 <span className="text-[10px] text-muted-foreground">order {it.sort_order}</span>
               </div>
               <h3 className="text-display mt-1 truncate text-lg">{it.name_es || it.name_en}</h3>
@@ -1053,11 +1090,7 @@ function ProjectsEditor() {
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <button
-                onClick={() => setEditing({
-                  id: it.id, name_es: it.name_es, name_en: it.name_en,
-                  desc_es: it.desc_es, desc_en: it.desc_en,
-                  stack: it.stack, link: it.link, image_url: it.image_url, sort_order: it.sort_order,
-                })}
+                onClick={() => setEditing(projectRowToDraft(it))}
                 className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs hover:bg-secondary"
               >
                 <Pencil className="h-3.5 w-3.5" /> Editar
@@ -1084,27 +1117,67 @@ function ProjectsEditor() {
               initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }} transition={{ duration: 0.4, ease }}
               onClick={(e) => e.stopPropagation()}
               onSubmit={(e) => { e.preventDefault(); save.mutate(editing); }}
-              className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-background p-6 md:rounded-3xl md:p-8"
+              className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-t-3xl bg-background p-6 md:rounded-3xl md:p-8"
             >
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-eyebrow">{editing.id ? "Editar" : "Nueva"}</p>
-                  <h2 className="text-display mt-1 text-2xl">Campaña</h2>
+                  <h2 className="text-display mt-1 text-2xl">Campaña / Case Study</h2>
                 </div>
                 <button type="button" onClick={() => setEditing(null)} className="rounded-full p-2 text-muted-foreground hover:bg-secondary hover:text-foreground">
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
+              {/* Básico */}
               <div className="mt-6 grid grid-cols-2 gap-4">
                 <TextField label="Nombre (ES)" value={editing.name_es} onChange={(v) => setEditing({ ...editing, name_es: v })} className="col-span-2 md:col-span-1" />
                 <TextField label="Name (EN)" value={editing.name_en} onChange={(v) => setEditing({ ...editing, name_en: v })} className="col-span-2 md:col-span-1" />
-                <TextArea label="Descripción (ES)" value={editing.desc_es} onChange={(v) => setEditing({ ...editing, desc_es: v })} className="col-span-2" />
-                <TextArea label="Description (EN)" value={editing.desc_en} onChange={(v) => setEditing({ ...editing, desc_en: v })} className="col-span-2" />
+                <TextArea label="Descripción corta (ES)" value={editing.desc_es} onChange={(v) => setEditing({ ...editing, desc_es: v })} className="col-span-2" />
+                <TextArea label="Short description (EN)" value={editing.desc_en} onChange={(v) => setEditing({ ...editing, desc_en: v })} className="col-span-2" />
                 <TextField label="Stack / Tag" value={editing.stack} onChange={(v) => setEditing({ ...editing, stack: v })} className="col-span-2 md:col-span-1" placeholder="OOH · LATAM" />
                 <TextField label="Sort order" type="number" value={String(editing.sort_order)} onChange={(v) => setEditing({ ...editing, sort_order: Number(v) || 0 })} className="col-span-2 md:col-span-1" />
                 <TextField label="Link (opcional)" value={editing.link} onChange={(v) => setEditing({ ...editing, link: v })} className="col-span-2" placeholder="https://…" />
-                <TextField label="Image URL (opcional)" value={editing.image_url} onChange={(v) => setEditing({ ...editing, image_url: v })} className="col-span-2" placeholder="https://…" />
+                <TextField label="Cover Image URL" value={editing.image_url} onChange={(v) => setEditing({ ...editing, image_url: v })} className="col-span-2" placeholder="https://…" />
+              </div>
+
+              {/* Meta case study */}
+              <div className="mt-8 border-t border-border pt-6">
+                <p className="text-eyebrow mb-4">Case study — datos</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <TextField label="Cliente" value={editing.client} onChange={(v) => setEditing({ ...editing, client: v })} className="col-span-2 md:col-span-1" placeholder="Coca-Cola" />
+                  <TextField label="Año" value={editing.year} onChange={(v) => setEditing({ ...editing, year: v })} className="col-span-2 md:col-span-1" placeholder="2023" />
+                  <TextField
+                    label="Verticales (separadas por coma)"
+                    value={editing.verticals.join(", ")}
+                    onChange={(v) => setEditing({ ...editing, verticals: v.split(",").map((s) => s.trim()).filter(Boolean) })}
+                    className="col-span-2"
+                    placeholder="Beverages, Retail, Telco"
+                  />
+                </div>
+              </div>
+
+              {/* Narrativa */}
+              <div className="mt-8 border-t border-border pt-6">
+                <p className="text-eyebrow mb-4">Narrativa — Challenge · Approach · Outcome</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <TextArea label="Desafío (ES)" value={editing.challenge_es} onChange={(v) => setEditing({ ...editing, challenge_es: v })} className="col-span-2 md:col-span-1" />
+                  <TextArea label="Challenge (EN)" value={editing.challenge_en} onChange={(v) => setEditing({ ...editing, challenge_en: v })} className="col-span-2 md:col-span-1" />
+                  <TextArea label="Estrategia (ES)" value={editing.approach_es} onChange={(v) => setEditing({ ...editing, approach_es: v })} className="col-span-2 md:col-span-1" />
+                  <TextArea label="Approach (EN)" value={editing.approach_en} onChange={(v) => setEditing({ ...editing, approach_en: v })} className="col-span-2 md:col-span-1" />
+                  <TextArea label="Resultado (ES)" value={editing.outcome_es} onChange={(v) => setEditing({ ...editing, outcome_es: v })} className="col-span-2 md:col-span-1" />
+                  <TextArea label="Outcome (EN)" value={editing.outcome_en} onChange={(v) => setEditing({ ...editing, outcome_en: v })} className="col-span-2 md:col-span-1" />
+                </div>
+              </div>
+
+              {/* Métricas */}
+              <div className="mt-8 border-t border-border pt-6">
+                <MetricsEditor value={editing.metrics} onChange={(m) => setEditing({ ...editing, metrics: m })} />
+              </div>
+
+              {/* Galería */}
+              <div className="mt-8 border-t border-border pt-6">
+                <GalleryEditor value={editing.gallery} onChange={(g) => setEditing({ ...editing, gallery: g })} />
               </div>
 
               {save.error && <p className="mt-4 text-sm text-destructive">{(save.error as Error).message}</p>}
@@ -1122,6 +1195,165 @@ function ProjectsEditor() {
     </div>
   );
 }
+
+function MetricsEditor({ value, onChange }: { value: ProjectMetric[]; onChange: (m: ProjectMetric[]) => void }) {
+  return (
+    <div>
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-eyebrow">Métricas animadas (counters)</p>
+        <button
+          type="button"
+          onClick={() => onChange([...value, { value: "", prefix: "", suffix: "", label_es: "", label_en: "" }])}
+          className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs hover:bg-secondary"
+        >
+          <Plus className="h-3.5 w-3.5" /> Agregar métrica
+        </button>
+      </div>
+      {value.length === 0 && (
+        <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
+          Sin métricas. Ej: 250 impresiones (M), $1.2 inversión (M), 12 ciudades.
+        </p>
+      )}
+      <div className="flex flex-col gap-3">
+        {value.map((m, i) => (
+          <div key={i} className="grid grid-cols-12 gap-2 rounded-lg border border-border bg-surface p-3">
+            <label className="col-span-2 flex flex-col gap-1">
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Prefix</span>
+              <input value={m.prefix} onChange={(e) => onChange(value.map((x, j) => j === i ? { ...x, prefix: e.target.value } : x))} className="rounded border border-border bg-background px-2 py-1.5 text-sm" placeholder="$" />
+            </label>
+            <label className="col-span-3 flex flex-col gap-1">
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Valor</span>
+              <input value={m.value} onChange={(e) => onChange(value.map((x, j) => j === i ? { ...x, value: e.target.value } : x))} className="rounded border border-border bg-background px-2 py-1.5 text-sm" placeholder="250" />
+            </label>
+            <label className="col-span-2 flex flex-col gap-1">
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Suffix</span>
+              <input value={m.suffix} onChange={(e) => onChange(value.map((x, j) => j === i ? { ...x, suffix: e.target.value } : x))} className="rounded border border-border bg-background px-2 py-1.5 text-sm" placeholder="M+" />
+            </label>
+            <label className="col-span-5 flex flex-col gap-1 md:col-span-2">
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Label ES</span>
+              <input value={m.label_es} onChange={(e) => onChange(value.map((x, j) => j === i ? { ...x, label_es: e.target.value } : x))} className="rounded border border-border bg-background px-2 py-1.5 text-sm" placeholder="Impresiones" />
+            </label>
+            <label className="col-span-11 flex flex-col gap-1 md:col-span-2">
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground">Label EN</span>
+              <input value={m.label_en} onChange={(e) => onChange(value.map((x, j) => j === i ? { ...x, label_en: e.target.value } : x))} className="rounded border border-border bg-background px-2 py-1.5 text-sm" placeholder="Impressions" />
+            </label>
+            <button
+              type="button"
+              onClick={() => onChange(value.filter((_, j) => j !== i))}
+              className="col-span-1 flex items-center justify-center rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              title="Eliminar"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function GalleryEditor({ value, onChange }: { value: ProjectGalleryItem[]; onChange: (g: ProjectGalleryItem[]) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function handleFiles(files: FileList | null) {
+    if (!files || !files.length) return;
+    setUploading(true);
+    setErr(null);
+    try {
+      const uploaded: ProjectGalleryItem[] = [];
+      for (const file of Array.from(files)) {
+        if (file.size > 25 * 1024 * 1024) throw new Error(`"${file.name}" supera los 25MB`);
+        const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        const path = `gallery/${crypto.randomUUID()}-${safe}`;
+        const up = await supabase.storage
+          .from("cv-projects")
+          .upload(path, file, { contentType: file.type || "application/octet-stream", upsert: false });
+        if (up.error) throw up.error;
+        const signed = await supabase.storage.from("cv-projects").createSignedUrl(path, SIGNED_URL_TTL);
+        if (signed.error) throw signed.error;
+        uploaded.push({ path, url: signed.data.signedUrl, caption_es: "", caption_en: "" });
+      }
+      onChange([...value, ...uploaded]);
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function removeAt(idx: number) {
+    const target = value[idx];
+    if (!target) return;
+    if (!confirm("¿Eliminar esta imagen?")) return;
+    if (target.path) await supabase.storage.from("cv-projects").remove([target.path]);
+    onChange(value.filter((_, i) => i !== idx));
+  }
+
+  return (
+    <div>
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-eyebrow flex items-center gap-1.5">
+          <ImageIcon className="h-3 w-3" /> Galería (hasta 6 imágenes recomendado)
+        </p>
+        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground">
+          {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+          {uploading ? "Subiendo…" : "Subir imágenes"}
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            className="hidden"
+            disabled={uploading}
+            onChange={(e) => {
+              handleFiles(e.target.files);
+              e.currentTarget.value = "";
+            }}
+          />
+        </label>
+      </div>
+      {err && <p className="mb-2 text-xs text-destructive">{err}</p>}
+      {value.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
+          Sin imágenes. Subí fotos de la campaña (piezas, activaciones, resultados).
+        </p>
+      ) : (
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {value.map((g, i) => (
+            <li key={g.path || g.url + i} className="flex flex-col gap-2 rounded-lg border border-border bg-surface p-3">
+              <div className="flex items-start gap-3">
+                <img src={g.url} alt="" className="h-16 w-16 shrink-0 rounded-md object-cover" />
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <input
+                    value={g.caption_es}
+                    onChange={(e) => onChange(value.map((x, j) => j === i ? { ...x, caption_es: e.target.value } : x))}
+                    className="w-full rounded border border-border bg-background px-2 py-1 text-xs"
+                    placeholder="Caption (ES)"
+                  />
+                  <input
+                    value={g.caption_en}
+                    onChange={(e) => onChange(value.map((x, j) => j === i ? { ...x, caption_en: e.target.value } : x))}
+                    className="w-full rounded border border-border bg-background px-2 py-1 text-xs"
+                    placeholder="Caption (EN)"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeAt(i)}
+                  className="rounded-full p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  title="Eliminar"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 
 // ---------------- Skills editor ----------------
 
