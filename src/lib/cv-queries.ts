@@ -7,6 +7,16 @@ export type TimelineKind = Database["public"]["Enums"]["timeline_kind"];
 export type ProfileSettings = Database["public"]["Tables"]["profile_settings"]["Row"];
 export type ProjectRow = Database["public"]["Tables"]["projects"]["Row"];
 export type SkillRow = Database["public"]["Tables"]["skills"]["Row"];
+export type MarketRow = Database["public"]["Tables"]["markets"]["Row"];
+
+export const marketsQuery = queryOptions({
+  queryKey: ["markets"],
+  queryFn: async (): Promise<MarketRow[]> => {
+    const { data, error } = await supabase.from("markets").select("*").order("sort_order", { ascending: true });
+    if (error) throw error;
+    return data ?? [];
+  },
+});
 
 export type AboutStat = { value: string; label_es: string; label_en: string };
 
