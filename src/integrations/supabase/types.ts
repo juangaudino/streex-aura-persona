@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      markets: {
+        Row: {
+          city: string
+          country: string
+          country_code: string | null
+          created_at: string
+          id: string
+          is_home: boolean
+          lat: number
+          lng: number
+          note_en: string | null
+          note_es: string | null
+          sort_order: number
+          updated_at: string
+          year_from: number | null
+          year_to: number | null
+        }
+        Insert: {
+          city: string
+          country: string
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          is_home?: boolean
+          lat: number
+          lng: number
+          note_en?: string | null
+          note_es?: string | null
+          sort_order?: number
+          updated_at?: string
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Update: {
+          city?: string
+          country?: string
+          country_code?: string | null
+          created_at?: string
+          id?: string
+          is_home?: boolean
+          lat?: number
+          lng?: number
+          note_en?: string | null
+          note_es?: string | null
+          sort_order?: number
+          updated_at?: string
+          year_from?: number | null
+          year_to?: number | null
+        }
+        Relationships: []
+      }
       profile_settings: {
         Row: {
           about_body_en: string[]
@@ -56,6 +107,12 @@ export type Database = {
           hero_title_en: string[]
           hero_title_es: string[]
           id: string
+          journey_body_en: string | null
+          journey_body_es: string | null
+          journey_eyebrow_en: string | null
+          journey_eyebrow_es: string | null
+          journey_title_en: string | null
+          journey_title_es: string | null
           linkedin: string
           location: string
           name: string
@@ -114,6 +171,12 @@ export type Database = {
           hero_title_en?: string[]
           hero_title_es?: string[]
           id?: string
+          journey_body_en?: string | null
+          journey_body_es?: string | null
+          journey_eyebrow_en?: string | null
+          journey_eyebrow_es?: string | null
+          journey_title_en?: string | null
+          journey_title_es?: string | null
           linkedin?: string
           location?: string
           name?: string
@@ -172,6 +235,12 @@ export type Database = {
           hero_title_en?: string[]
           hero_title_es?: string[]
           id?: string
+          journey_body_en?: string | null
+          journey_body_es?: string | null
+          journey_eyebrow_en?: string | null
+          journey_eyebrow_es?: string | null
+          journey_title_en?: string | null
+          journey_title_es?: string | null
           linkedin?: string
           location?: string
           name?: string
