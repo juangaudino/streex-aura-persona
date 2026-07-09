@@ -801,6 +801,14 @@ function ContentEditor() {
           <BilingualField label="Título" es={draft.projects_title_es} en={draft.projects_title_en} onEs={(v) => update("projects_title_es", v)} onEn={(v) => update("projects_title_en", v)} />
         </ContentSection>
 
+        <ContentSection title="Journey · Mapa" icon={FileEdit}>
+          <BilingualField label="Eyebrow" es={draft.journey_eyebrow_es} en={draft.journey_eyebrow_en} onEs={(v) => update("journey_eyebrow_es", v)} onEn={(v) => update("journey_eyebrow_en", v)} />
+          <BilingualField label="Título" es={draft.journey_title_es} en={draft.journey_title_en} onEs={(v) => update("journey_title_es", v)} onEn={(v) => update("journey_title_en", v)} />
+          <BilingualArea label="Descripción" es={draft.journey_body_es} en={draft.journey_body_en} onEs={(v) => update("journey_body_es", v)} onEn={(v) => update("journey_body_en", v)} rows={3} />
+        </ContentSection>
+
+
+
         <ContentSection title="Skills" icon={FileEdit}>
           <BilingualField label="Eyebrow" es={draft.skills_eyebrow_es} en={draft.skills_eyebrow_en} onEs={(v) => update("skills_eyebrow_es", v)} onEn={(v) => update("skills_eyebrow_en", v)} />
           <BilingualField label="Título" es={draft.skills_title_es} en={draft.skills_title_en} onEs={(v) => update("skills_title_es", v)} onEn={(v) => update("skills_title_en", v)} />
