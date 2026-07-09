@@ -692,6 +692,12 @@ function toDraft(p: ProfileSettings): ContentDraft {
     contact_title_en: p.contact_title_en,
     contact_sub_es: p.contact_sub_es,
     contact_sub_en: p.contact_sub_en,
+    journey_eyebrow_es: p.journey_eyebrow_es ?? "",
+    journey_eyebrow_en: p.journey_eyebrow_en ?? "",
+    journey_title_es: p.journey_title_es ?? "",
+    journey_title_en: p.journey_title_en ?? "",
+    journey_body_es: p.journey_body_es ?? "",
+    journey_body_en: p.journey_body_en ?? "",
   };
 }
 
