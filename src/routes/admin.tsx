@@ -145,6 +145,15 @@ function AdminPage() {
 
           <TimelineEditor items={timeline.data ?? []} loading={timeline.isLoading} />
         </div>
+
+        <div className="mt-24">
+          <p className="text-eyebrow mb-3">Journey · Mercados</p>
+          <h1 className="text-display text-4xl md:text-5xl">Mapa LATAM → US</h1>
+          <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+            Cada ciudad aparece como punto en el mapa. Marcá una como “base actual” para destacarla con el accent. El orden usa <code>sort_order</code>.
+          </p>
+          <MarketsEditor />
+        </div>
       </section>
 
     </main>
