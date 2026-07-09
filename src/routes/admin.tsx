@@ -1595,3 +1595,290 @@ function SkillCategoryCard({
     </div>
   );
 }
+
+// ---------------- Markets editor (Journey map) ----------------
+
+type MarketDraft = {
+  id?: string;
+  city: string;
+  country: string;
+  country_code: string;
+  lat: number;
+  lng: number;
+  year_from: number | null;
+  year_to: number | null;
+  note_es: string;
+  note_en: string;
+  is_home: boolean;
+  sort_order: number;
+};
+
+const emptyMarket = (order: number): MarketDraft => ({
+  city: "",
+  country: "",
+  country_code: "",
+  lat: 0,
+  lng: 0,
+  year_from: null,
+  year_to: null,
+  note_es: "",
+  note_en: "",
+  is_home: false,
+  sort_order: order,
+});
+
+function toMarketDraft(m: MarketRow): MarketDraft {
+  return {
+    id: m.id,
+    city: m.city,
+    country: m.country,
+    country_code: m.country_code ?? "",
+    lat: m.lat,
+    lng: m.lng,
+    year_from: m.year_from,
+    year_to: m.year_to,
+    note_es: m.note_es ?? "",
+    note_en: m.note_en ?? "",
+    is_home: m.is_home,
+    sort_order: m.sort_order,
+  };
+}
+
+function MarketsEditor() {
+  const qc = useQueryClient();
+  const { data: markets, isLoading } = useQuery(marketsQuery);
+  const [editing, setEditing] = useState<MarketDraft | null>(null);
+
+  const nextOrder = useMemo(
+    () => ((markets?.length ?? 0) ? Math.max(...(markets ?? []).map((m) => m.sort_order)) + 10 : 10),
+    [markets],
+  );
+
+  const save = useMutation({
+    mutationFn: async (d: MarketDraft) => {
+      const payload = {
+        city: d.city,
+        country: d.country,
+        country_code: d.country_code || null,
+        lat: d.lat,
+        lng: d.lng,
+        year_from: d.year_from,
+        year_to: d.year_to,
+        note_es: d.note_es,
+        note_en: d.note_en,
+        is_home: d.is_home,
+        sort_order: d.sort_order,
+      };
+      if (d.id) {
+        const { error } = await supabase.from("markets").update(payload).eq("id", d.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("markets").insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["markets"] });
+      setEditing(null);
+    },
+  });
+
+  const del = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("markets").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["markets"] }),
+  });
+
+  return (
+    <div className="mt-12">
+      <div className="mb-6 flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {isLoading ? "Cargando…" : `${markets?.length ?? 0} mercado${(markets?.length ?? 0) === 1 ? "" : "s"}`}
+        </p>
+        <button
+          onClick={() => setEditing(emptyMarket(nextOrder))}
+          className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background transition-transform hover:scale-[1.02]"
+        >
+          <Plus className="h-3.5 w-3.5" /> Nuevo mercado
+        </button>
+      </div>
+
+      <ul className="space-y-3">
+        {(markets ?? []).map((m) => (
+          <li key={m.id}>
+            <article className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5 md:flex-row md:items-center md:justify-between">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-eyebrow">{m.country_code || m.country}</span>
+                  {m.is_home && (
+                    <span className="inline-flex items-center rounded-full border border-accent/40 px-2 py-0.5 text-[10px] uppercase tracking-[0.14em] text-accent">
+                      Home
+                    </span>
+                  )}
+                  <span className="text-xs tabular-nums text-muted-foreground">
+                    {m.year_from ?? "—"}{m.year_to ? `–${m.year_to}` : ""} · sort {m.sort_order}
+                  </span>
+                </div>
+                <h3 className="text-display mt-1 text-lg">{m.city}</h3>
+                <p className="text-xs text-muted-foreground">
+                  {m.country} · {m.lat.toFixed(2)}, {m.lng.toFixed(2)}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  onClick={() => setEditing(toMarketDraft(m))}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs hover:border-foreground"
+                >
+                  <Pencil className="h-3.5 w-3.5" /> Editar
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm(`¿Eliminar ${m.city}?`)) del.mutate(m.id);
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-destructive hover:border-destructive"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> Borrar
+                </button>
+              </div>
+            </article>
+          </li>
+        ))}
+      </ul>
+
+      <AnimatePresence>
+        {editing && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur"
+            onClick={(e) => e.target === e.currentTarget && setEditing(null)}
+          >
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 20, opacity: 0 }}
+              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full max-w-2xl overflow-hidden rounded-3xl border border-border bg-surface"
+            >
+              <div className="flex items-center justify-between border-b border-border px-6 py-4">
+                <h2 className="text-display text-lg">{editing.id ? "Editar mercado" : "Nuevo mercado"}</h2>
+                <button onClick={() => setEditing(null)} className="text-muted-foreground hover:text-foreground">
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="max-h-[70vh] space-y-4 overflow-y-auto p-6">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <LabeledInput label="Ciudad" value={editing.city} onChange={(v) => setEditing({ ...editing, city: v })} />
+                  <LabeledInput label="País" value={editing.country} onChange={(v) => setEditing({ ...editing, country: v })} />
+                  <LabeledInput label="Código país (AR, BR, US…)" value={editing.country_code} onChange={(v) => setEditing({ ...editing, country_code: v.toUpperCase().slice(0, 3) })} />
+                  <LabeledInput
+                    label="Sort order"
+                    type="number"
+                    value={String(editing.sort_order)}
+                    onChange={(v) => setEditing({ ...editing, sort_order: Number(v) || 0 })}
+                  />
+                  <LabeledInput
+                    label="Latitud"
+                    type="number"
+                    value={String(editing.lat)}
+                    onChange={(v) => setEditing({ ...editing, lat: Number(v) || 0 })}
+                  />
+                  <LabeledInput
+                    label="Longitud"
+                    type="number"
+                    value={String(editing.lng)}
+                    onChange={(v) => setEditing({ ...editing, lng: Number(v) || 0 })}
+                  />
+                  <LabeledInput
+                    label="Año desde"
+                    type="number"
+                    value={editing.year_from === null ? "" : String(editing.year_from)}
+                    onChange={(v) => setEditing({ ...editing, year_from: v === "" ? null : Number(v) })}
+                  />
+                  <LabeledInput
+                    label="Año hasta (opcional)"
+                    type="number"
+                    value={editing.year_to === null ? "" : String(editing.year_to)}
+                    onChange={(v) => setEditing({ ...editing, year_to: v === "" ? null : Number(v) })}
+                  />
+                </div>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={editing.is_home}
+                    onChange={(e) => setEditing({ ...editing, is_home: e.target.checked })}
+                    className="h-4 w-4"
+                  />
+                  Base actual (se destaca con accent en el mapa)
+                </label>
+                <div>
+                  <label className="text-eyebrow mb-1 block">Nota ES</label>
+                  <textarea
+                    value={editing.note_es}
+                    onChange={(e) => setEditing({ ...editing, note_es: e.target.value })}
+                    rows={2}
+                    className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-eyebrow mb-1 block">Nota EN</label>
+                  <textarea
+                    value={editing.note_en}
+                    onChange={(e) => setEditing({ ...editing, note_en: e.target.value })}
+                    rows={2}
+                    className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+                  />
+                </div>
+                {save.error && <p className="text-sm text-destructive">{(save.error as Error).message}</p>}
+              </div>
+              <div className="flex items-center justify-end gap-2 border-t border-border px-6 py-4">
+                <button
+                  onClick={() => setEditing(null)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => save.mutate(editing)}
+                  disabled={save.isPending || !editing.city || !editing.country}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-2 text-sm font-medium text-background disabled:opacity-50"
+                >
+                  {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {save.isPending ? "Guardando…" : "Guardar"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function LabeledInput({
+  label,
+  value,
+  onChange,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  type?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="text-eyebrow mb-1 block">{label}</span>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm"
+        step={type === "number" ? "any" : undefined}
+      />
+    </label>
+  );
+}
