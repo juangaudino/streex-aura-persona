@@ -5,6 +5,7 @@ import { Nav } from "@/components/cv/Nav";
 import { Hero } from "@/components/cv/Hero";
 import { About } from "@/components/cv/About";
 import { Experience } from "@/components/cv/Experience";
+import { Journey } from "@/components/cv/Journey";
 
 import { Projects } from "@/components/cv/Projects";
 import { Skills } from "@/components/cv/Skills";
@@ -41,7 +42,8 @@ function Page() {
       <Hero />
       <About />
       <Experience />
-      
+      <Journey />
+
       <Projects />
       <Skills />
       <Contact />
