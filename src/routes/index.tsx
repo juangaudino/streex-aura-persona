@@ -42,7 +42,8 @@ function Page() {
       <Hero />
       <About />
       <Experience />
-      
+      <Journey />
+
       <Projects />
       <Skills />
       <Contact />
