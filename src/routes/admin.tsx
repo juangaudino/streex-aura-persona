@@ -638,6 +638,12 @@ type ContentDraft = Pick<
   hero_title_en: string;
   about_body_es: string;
   about_body_en: string;
+  journey_eyebrow_es: string;
+  journey_eyebrow_en: string;
+  journey_title_es: string;
+  journey_title_en: string;
+  journey_body_es: string;
+  journey_body_en: string;
 };
 
 function toDraft(p: ProfileSettings): ContentDraft {
