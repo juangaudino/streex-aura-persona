@@ -1,93 +1,89 @@
 
-# Plan: Efecto WOW en 3 fases
+# Plan · Estética OOH nocturna + Split-Flap Hero
 
-Elegiste tres upgrades. Los implemento en este orden para que el impacto se sienta desde el primer scroll y crezca a medida que el visitante baja.
+Nivel de inmersión: 3/5 — ambientación consistente pero sin caer en escenografía cargada. Paleta noche urbana (negro profundo, ámbar cálido, luz de neón).
 
----
+## 1. Quitar el efecto de distorsión del título
 
-## Fase 1 — Hero cinemático + cursor magnético
+En `src/components/cv/Hero.tsx` elimino el filtro SVG `feTurbulence` + `feDisplacementMap`, el estado `nameHover`, y todo el `useEffect` que lo anima. El título queda limpio para recibir el nuevo efecto.
 
-**Qué cambia visualmente**
-- El nombre gigante se distorsiona sutilmente al pasar el mouse (efecto "displace" en las letras + weight shift).
-- Los botones CTA "Download CV" y "Get in touch" ganan un efecto imán: el botón se inclina hacia el cursor cuando está cerca.
-- Se agrega una capa de grano/noise animado muy sutil sobre la aurora existente (opacity 3–5%).
-- Un contador de scroll minimalista abajo a la derecha ("01 / 06") que se actualiza según la sección visible.
-- Mobile: se desactivan magnético y distorsión, se conserva el noise.
+## 2. Split-Flap en el título del hero
 
-**Técnico**
-- Motion for React + `useMotionValue` / `useTransform` (ya está instalado).
-- Componente nuevo `MagneticButton` reutilizable, con guard de `prefers-reduced-motion` y `hover: none`.
-- SVG filter `<feTurbulence>` + `feDisplacementMap` para la distorsión del H1, activado por hover con transición de amplitude.
-- Noise: canvas 128×128 generado una sola vez, tileado con `background-image` y `animation: translate` de 200ms.
-- Scroll indicator: `IntersectionObserver` sobre las secciones existentes.
+Nuevo componente `src/components/cv/SplitFlap.tsx`:
 
----
+- Cada letra es una "aleta" con perspectiva 3D (`transform-style: preserve-3d`).
+- Al hover sobre el título, cada letra cicla 4–6 caracteres aleatorios (A–Z, símbolos) y "aterriza" en la correcta con un flip mecánico (rotateX 90° → 0°, easing `[0.2, 0.9, 0.3, 1]`).
+- Sonido visual: línea horizontal fina que divide cada aleta (top/bottom) simulando la ranura mecánica del panel Solari.
+- Escalonado por letra (`stagger 20ms`) para el efecto de tablero de aeropuerto.
+- Respeta `prefers-reduced-motion` (queda estático).
+- Se dispara también una vez al montar, no sólo en hover — así el WOW aparece sin interacción.
 
-## Fase 2 — Case studies fullscreen para campañas
+## 3. Hero como Billboard
 
-**Qué cambia visualmente**
-- Click en cualquier project card abre un modal fullscreen con animación tipo Apple: la card se expande desde su posición hasta ocupar toda la pantalla (`layoutId`).
-- Dentro del case study:
-  - **Hero del caso**: título grande + cliente + año + verticales.
-  - **Métricas animadas**: 3–4 counters que corren de 0 al valor final al entrar en viewport ($ invertido, impresiones, ciudades, lift).
-  - **Contexto** (challenge) → **Estrategia** (approach) → **Resultado** (outcome) en 3 bloques narrativos.
-  - **Galería**: hasta 6 imágenes en grid asimétrico, click para lightbox.
-- Botón "Close" arriba a la derecha y `ESC` cierra. Scroll interno del modal.
+Refactor visual de `Hero.tsx`:
 
-**Admin — CRUD extendido para projects**
-La tabla `projects` gana columnas nuevas (bilingües donde corresponde):
-- `client`, `year`, `verticals[]`
-- `challenge_es`, `challenge_en`
-- `approach_es`, `approach_en`
-- `outcome_es`, `outcome_en`
-- `metrics jsonb` → `[{value, label_es, label_en, prefix, suffix}]`
-- `gallery jsonb` → `[{url, path, caption_es, caption_en}]`
+- El bloque derecho (retrato) se enmarca dentro de un **billboard SVG**: estructura con dos postes de acero, marco con luces puntuales arriba (bombillas ámbar con `filter: drop-shadow` y pulso sutil), esquineros metálicos.
+- El retrato mantiene el mask actual pero dentro del "cartel".
+- Debajo del billboard, base con sombra proyectada larga hacia el suelo.
+- El texto del hero queda a la izquierda, sobre la escena.
 
-En Admin se agrega un editor expandible por proyecto con secciones colapsables para challenge/approach/outcome, un editor de métricas (add/remove) y un uploader de galería (mismo patrón que attachments de timeline).
+## 4. Highway parallax de fondo
 
-**Técnico**
-- Modal con `AnimatePresence` + `layoutId` compartido entre card y modal para el morph.
-- Counters con `useMotionValue` + `animate()` (Motion) disparados por `useInView`.
-- Nueva migración: columnas + bucket `cv-projects` (público read, admin write).
-- `readMetrics` y `readGallery` helpers en `cv-queries.ts`, tipados.
-- Fallback: si un proyecto no tiene case study cargado, la card sigue funcionando como está hoy (sin modal).
+Nuevo componente `src/components/cv/HighwayBackdrop.tsx` (montado dentro del hero, `-z-10`):
 
----
+- Horizonte bajo con degradado noche → magenta apagado → negro.
+- Línea de carretera en perspectiva (SVG) desapareciendo en el horizonte, con líneas discontinuas animadas hacia adelante (loop infinito lento).
+- 6–10 "estelas" de luces de auto: pares de puntos rojos/blancos moviéndose por los carriles a distintas velocidades, con blur y bloom.
+- Todo respeta reduced-motion (estático).
 
-## Fase 3 — Mapa LATAM→US interactivo
+## 5. City lights bokeh en secciones clave
 
-**Qué cambia visualmente**
-- Nueva subsección al final de About (o inicio de Experience) titulada "Journey": mapa SVG estilizado de LATAM + sur de US.
-- Los mercados donde operaste aparecen como puntos que pulsan (Buenos Aires, São Paulo, CDMX, Bogotá, Santiago, Lima, Salt Lake City, etc. — editables desde Admin).
-- Una línea animada traza el journey Argentina → Salt Lake City al entrar en viewport (SVG `pathLength` de 0 a 1).
-- Hover sobre un punto muestra un tooltip: ciudad, país, año en que operaste, tipo de campaña.
-- Paleta consistente con el resto (accent color para los puntos activos, muted para los inactivos).
+Nuevo `src/components/cv/CityBokeh.tsx`: capa fija detrás de About, Journey y Contact con 30–40 círculos borrosos (ámbar, blanco cálido, cian tenue) distribuidos aleatoriamente, con `filter: blur(24px)` y opacidad baja (6–12%). Drift suave con `motion` (translate ±20px, 20s loop).
 
-**Admin — nueva sección "Markets"**
-Nueva tabla `markets`:
-- `id`, `city`, `country`, `country_code`, `lat`, `lng`, `year_from`, `year_to`, `note_es`, `note_en`, `is_home boolean`, `sort_order`.
+## 6. Ticker DOOH
 
-Editor en Admin con lista de mercados, drag/reorder no necesario (usa sort_order numérico como el resto). El path del journey se calcula automáticamente conectando los puntos con `is_home` primero o por orden.
+Nuevo `src/components/cv/DoohTicker.tsx`: banda horizontal delgada tipo pantalla LED (fondo negro, texto ámbar monoespaciado, scanlines sutiles con `repeating-linear-gradient`). Contenido animado (marquee infinito):
 
-**Técnico**
-- SVG estático de fondo (LATAM + US sur) generado una sola vez, guardado en `src/assets/`. Proyección Mercator simplificada.
-- Función `latLngToSvg(lat, lng)` que mapea coords geográficas a coords SVG del asset.
-- Line drawing con Motion: `<motion.path strokeDasharray={pathLength} strokeDashoffset animate={{...}}>`.
-- Puntos pulsantes: círculo SVG + `animate` en `r` y `opacity` en loop.
-- Tooltip con Radix `HoverCard` para accesibilidad.
+- "IMPRESSIONS · 2.4B+"
+- "MARKETS · 7"
+- "CAMPAIGNS · 120+"
+- "YEARS · 15+"
+- "OOH · DOOH · PROGRAMMATIC"
 
----
+Se monta dos veces: una justo debajo del hero (transición al About) y otra antes del footer. Los valores se leen de `profile_settings` (stats existentes) para que sigan siendo editables desde admin — no se agrega tabla nueva.
 
-## Orden de entrega
-1. **Fase 1** primero — es la más rápida y transforma la primera impresión.
-2. **Fase 2** — el diferencial más grande para reclutadores (case studies reales).
-3. **Fase 3** — el remate emocional del storytelling LATAM → US.
+## 7. Paleta y tokens
 
-Cada fase queda navegable y editable desde Admin al terminarla, sin dependencias entre fases. Si querés cortar después de la 1 o la 2, el sitio queda coherente igual.
+En `src/styles.css` agrego tokens semánticos para el modo nocturno:
 
----
+- `--ooh-amber: oklch(0.82 0.16 75)` (luz de billboard)
+- `--ooh-neon: oklch(0.75 0.22 320)` (neón magenta)
+- `--ooh-road: oklch(0.15 0.02 260)` (asfalto)
+- `--ooh-glow`: gradiente compuesto reutilizable
 
-## Notas de scope
-- No toco el sistema de theming ni la paleta actual — todo suma sobre los tokens existentes.
-- Mobile-first en las tres fases: cursor magnético off, modal fullscreen usa sheet vertical, mapa se rota a formato vertical con lista.
-- Todo el contenido nuevo (case studies, mercados) es editable desde Admin. Nada hardcodeado.
+Se aplican solo en los nuevos componentes; el resto del sitio conserva sus tokens actuales.
+
+## 8. Cambios en `src/routes/index.tsx`
+
+- Se envuelve la sección Hero con `HighwayBackdrop`.
+- Se agrega `DoohTicker` después del hero y antes del footer.
+- `CityBokeh` se monta como capa global fija detrás del contenido.
+
+## Archivos afectados
+
+Nuevos:
+- `src/components/cv/SplitFlap.tsx`
+- `src/components/cv/HighwayBackdrop.tsx`
+- `src/components/cv/CityBokeh.tsx`
+- `src/components/cv/DoohTicker.tsx`
+
+Editados:
+- `src/components/cv/Hero.tsx` (quitar distorsión, montar SplitFlap + marco billboard)
+- `src/routes/index.tsx` (integrar backdrop, bokeh, tickers)
+- `src/styles.css` (tokens OOH)
+
+## Fuera de alcance
+
+- No se toca el admin ni el schema.
+- No se cambia el contenido textual del CV.
+- No se altera Journey, Projects, Skills, Contact más allá de la capa de bokeh detrás.

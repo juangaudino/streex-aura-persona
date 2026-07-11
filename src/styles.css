@@ -3,6 +3,37 @@
 @import "tw-animate-css";
 @import "@fontsource-variable/inter/index.css";
 
+/* OOH tokens — night urban palette */
+:root {
+  --ooh-amber: oklch(0.82 0.16 75);
+  --ooh-neon: oklch(0.75 0.22 320);
+  --ooh-road: oklch(0.15 0.02 260);
+}
+
+/* Split-flap mechanical letters (used in Hero title) */
+.split-flap-cell {
+  display: inline-block;
+  position: relative;
+  padding: 0 0.02em;
+}
+.split-flap-cell::before,
+.split-flap-cell::after {
+  content: "";
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  height: 1px;
+  background: color-mix(in oklab, var(--foreground) 12%, transparent);
+  pointer-events: none;
+}
+.split-flap-cell::before { top: 50%; }
+.split-flap-cell::after { display: none; }
+.split-flap-char {
+  display: inline-block;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
