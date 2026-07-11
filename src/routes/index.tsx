@@ -13,6 +13,8 @@ import { Contact } from "@/components/cv/Contact";
 import { Footer } from "@/components/cv/Footer";
 import { NoiseOverlay } from "@/components/cv/NoiseOverlay";
 import { ScrollIndicator } from "@/components/cv/ScrollIndicator";
+import { CityBokeh } from "@/components/cv/CityBokeh";
+import { DoohTicker } from "@/components/cv/DoohTicker";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -34,12 +36,23 @@ function Index() {
   );
 }
 
+const TICKER_ITEMS = [
+  "IMPRESSIONS · 2.4B+",
+  "MARKETS · 7",
+  "CAMPAIGNS · 120+",
+  "YEARS · 15+",
+  "OOH · DOOH · PROGRAMMATIC",
+  "LATAM → U.S.",
+];
+
 function Page() {
   useSmoothScroll();
   return (
     <main className="relative min-h-screen bg-background text-foreground">
+      <CityBokeh />
       <Nav />
       <Hero />
+      <DoohTicker items={TICKER_ITEMS} />
       <About />
       <Experience />
       <Journey />
@@ -47,6 +60,7 @@ function Page() {
       <Projects />
       <Skills />
       <Contact />
+      <DoohTicker items={TICKER_ITEMS} speed={55} />
       <Footer />
       <NoiseOverlay opacity={0.035} />
       <ScrollIndicator />
