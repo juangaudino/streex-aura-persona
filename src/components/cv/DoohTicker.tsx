@@ -64,8 +64,30 @@ export function DoohTicker({ items, speed = 40 }: DoohTickerProps) {
   const maskImage =
     "linear-gradient(to right, transparent, #000 6%, #000 94%, transparent)";
 
-  // Progress-based subtle hue shift on the glow when hovered
-  const glowOpacity = useTransform(x, [0, -trackWidth || -1], [0.08, 0.14]);
+  // Progress-based subtle hue shift on the glow + pause pulse
+  const glowOpacity = useTransform(
+    [x, pausePulse],
+    ([latestX, latestPulse]) => {
+      const progress =
+        typeof latestX === "number" && trackWidth
+          ? Math.abs(latestX) / trackWidth
+          : 0;
+      const base = 0.08 + progress * 0.06;
+      const pulse = typeof latestPulse === "number" ? latestPulse * 0.05 : 0;
+      return Math.min(0.22, base + pulse);
+    }
+  );
+
+  // Subtle tracking and glow breathing while paused
+  const letterSpacing = useTransform(pausePulse, [0, 1], ["0.32em", "0.36em"]);
+  const textShadow = useTransform(
+    pausePulse,
+    [0, 1],
+    [
+      "0 0 6px rgba(255, 180, 80, 0.45), 0 0 18px rgba(255, 180, 80, 0.2)",
+      "0 0 10px rgba(255, 180, 80, 0.65), 0 0 28px rgba(255, 180, 80, 0.35)",
+    ]
+  );
 
   return (
     <div
