@@ -150,17 +150,20 @@ export function DoohTicker({ items, speed = 40 }: DoohTickerProps) {
         className="flex whitespace-nowrap py-3 will-change-transform"
       >
         {[0, 1].map((k) => (
-          <span
+          <motion.span
             key={k}
-            className="shrink-0 pr-12 font-mono text-[0.8rem] sm:text-sm tracking-[0.32em] uppercase transition-[letter-spacing,color] duration-500 group-hover:tracking-[0.38em]"
+            className={
+              "shrink-0 pr-12 font-mono text-[0.8rem] sm:text-sm uppercase transition-colors duration-500 " +
+              (!paused ? "tracking-[0.32em] group-hover:tracking-[0.38em]" : "")
+            }
             style={{
+              letterSpacing: paused ? letterSpacing : undefined,
               color: "rgb(255, 200, 130)",
-              textShadow:
-                "0 0 6px rgba(255, 180, 80, 0.45), 0 0 18px rgba(255, 180, 80, 0.2)",
+              textShadow,
             }}
           >
             {line}     ◆     {line}     ◆    {" "}
-          </span>
+          </motion.span>
         ))}
       </motion.div>
     </div>
