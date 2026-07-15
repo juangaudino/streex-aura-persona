@@ -14,6 +14,7 @@ export function DoohTicker({ items, speed = 40 }: DoohTickerProps) {
   const [trackWidth, setTrackWidth] = useState(0);
   const [paused, setPaused] = useState(false);
   const [reduced, setReduced] = useState(false);
+  const pausePulse = useMotionValue(0);
 
   const x = useMotionValue(0);
 
