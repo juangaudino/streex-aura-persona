@@ -37,6 +37,20 @@ export function DoohTicker({ items, speed = 40 }: DoohTickerProps) {
     return () => mq.removeEventListener("change", on);
   }, []);
 
+  // Premium breathing pulse while paused
+  useEffect(() => {
+    if (!paused || reduced) {
+      pausePulse.set(0);
+      return;
+    }
+    const controls = animate(pausePulse, [0, 1, 0], {
+      duration: 2.8,
+      repeat: Infinity,
+      ease: "easeInOut",
+    });
+    return controls.stop;
+  }, [paused, reduced, pausePulse]);
+
   // Smooth pause/resume via animation frame
   useAnimationFrame((_, delta) => {
     if (paused || reduced || trackWidth === 0) return;
