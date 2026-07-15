@@ -1,4 +1,4 @@
-import { animate, motion, useAnimationFrame, useMotionValue, useTransform } from "motion/react";
+import { motion, useAnimationFrame, useMotionValue, useTransform } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
 interface DoohTickerProps {
@@ -9,12 +9,9 @@ interface DoohTickerProps {
 export function DoohTicker({ items, speed = 40 }: DoohTickerProps) {
   const line = items.join("     ◆     ");
 
-  const containerRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const [trackWidth, setTrackWidth] = useState(0);
-  const [paused, setPaused] = useState(false);
   const [reduced, setReduced] = useState(false);
-  const pausePulse = useMotionValue(0);
 
   const x = useMotionValue(0);
 
@@ -37,23 +34,9 @@ export function DoohTicker({ items, speed = 40 }: DoohTickerProps) {
     return () => mq.removeEventListener("change", on);
   }, []);
 
-  // Premium breathing pulse while paused
-  useEffect(() => {
-    if (!paused || reduced) {
-      pausePulse.set(0);
-      return;
-    }
-    const controls = animate(pausePulse, [0, 1, 0], {
-      duration: 2.8,
-      repeat: Infinity,
-      ease: "easeInOut",
-    });
-    return controls.stop;
-  }, [paused, reduced, pausePulse]);
-
-  // Smooth pause/resume via animation frame
+  // Continuous loop — no pause, no interaction
   useAnimationFrame((_, delta) => {
-    if (paused || reduced || trackWidth === 0) return;
+    if (reduced || trackWidth === 0) return;
     const pxPerMs = trackWidth / (speed * 1000);
     let next = x.get() - pxPerMs * delta;
     if (next <= -trackWidth) next += trackWidth;
@@ -64,44 +47,17 @@ export function DoohTicker({ items, speed = 40 }: DoohTickerProps) {
   const maskImage =
     "linear-gradient(to right, transparent, #000 6%, #000 94%, transparent)";
 
-  // Progress-based subtle hue shift on the glow + pause pulse
-  const glowOpacity = useTransform(
-    [x, pausePulse],
-    ([latestX, latestPulse]) => {
-      const progress =
-        typeof latestX === "number" && trackWidth
-          ? Math.abs(latestX) / trackWidth
-          : 0;
-      const base = 0.08 + progress * 0.06;
-      const pulse = typeof latestPulse === "number" ? latestPulse * 0.05 : 0;
-      return Math.min(0.22, base + pulse);
-    }
-  );
-
-  // Subtle tracking and glow breathing while paused
-  const letterSpacing = useTransform(pausePulse, [0, 1], ["0.32em", "0.36em"]);
-  const textShadow = useTransform(
-    pausePulse,
-    [0, 1],
-    [
-      "0 0 6px rgba(255, 180, 80, 0.45), 0 0 18px rgba(255, 180, 80, 0.2)",
-      "0 0 10px rgba(255, 180, 80, 0.65), 0 0 28px rgba(255, 180, 80, 0.35)",
-    ]
-  );
+  // Subtle progress-based glow
+  const glowOpacity = useTransform(x, (latestX) => {
+    const progress = trackWidth ? Math.abs(latestX) / trackWidth : 0;
+    return Math.min(0.18, 0.08 + progress * 0.06);
+  });
 
   return (
     <div
-      ref={containerRef}
       role="marquee"
       aria-label="Métricas destacadas"
-      tabIndex={0}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      onBlur={() => setPaused(false)}
-      onTouchStart={() => setPaused(true)}
-      onTouchEnd={() => setPaused(false)}
-      className="group relative overflow-hidden border-y outline-none focus-visible:ring-1 focus-visible:ring-[rgba(255,190,110,0.5)]"
+      className="relative overflow-hidden border-y"
       style={{
         borderColor: "rgba(255, 180, 80, 0.15)",
         background:
@@ -131,19 +87,6 @@ export function DoohTicker({ items, speed = 40 }: DoohTickerProps) {
         }}
       />
 
-      {/* Pause indicator */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[10px] tracking-[0.3em] uppercase transition-opacity duration-300"
-        style={{
-          opacity: paused ? 0.7 : 0,
-          color: "rgb(255, 190, 110)",
-          textShadow: "0 0 8px rgba(255, 180, 80, 0.6)",
-        }}
-      >
-        ▍▍ pause
-      </div>
-
       <motion.div
         ref={trackRef}
         style={{ x }}
@@ -152,14 +95,11 @@ export function DoohTicker({ items, speed = 40 }: DoohTickerProps) {
         {[0, 1].map((k) => (
           <motion.span
             key={k}
-            className={
-              "shrink-0 pr-12 font-mono text-[0.8rem] sm:text-sm uppercase transition-colors duration-500 " +
-              (!paused ? "tracking-[0.32em] group-hover:tracking-[0.38em]" : "")
-            }
+            className="shrink-0 pr-12 font-mono text-[0.8rem] sm:text-sm uppercase tracking-[0.32em]"
             style={{
-              letterSpacing: paused ? letterSpacing : undefined,
               color: "rgb(255, 200, 130)",
-              textShadow,
+              textShadow:
+                "0 0 6px rgba(255, 180, 80, 0.45), 0 0 18px rgba(255, 180, 80, 0.2)",
             }}
           >
             {line}     ◆     {line}     ◆    {" "}
