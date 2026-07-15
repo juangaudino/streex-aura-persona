@@ -6,7 +6,7 @@ import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
 import { profileQuery } from "@/lib/cv-queries";
 import { MagneticButton } from "./MagneticButton";
-import { SplitFlap } from "./SplitFlap";
+
 import { HighwayBackdrop } from "./HighwayBackdrop";
 import portraitLightAsset from "@/assets/juan-light.png.asset.json";
 import portraitDarkAsset from "@/assets/juan-dark.png.asset.json";
@@ -113,22 +113,34 @@ export function Hero() {
           </motion.p>
 
           <h1 className="text-display text-5xl sm:text-7xl md:text-8xl lg:text-[9rem]">
-            {t.title.map((line, lineIdx) => (
-              <span key={lineIdx} className="block overflow-hidden">
-                <motion.span
-                  initial={{ y: "110%" }}
-                  animate={{ y: 0 }}
-                  transition={{ duration: 1, ease, delay: 0.15 + lineIdx * 0.08 }}
-                  className="inline-block"
-                >
-                  <SplitFlap
-                    text={line}
-                    baseDelay={400 + lineIdx * 200}
-                    stagger={40}
-                  />
-                </motion.span>
-              </span>
-            ))}
+            {(() => {
+              let wordCounter = 0;
+              return t.title.map((line, lineIdx) => {
+                const words = line.split(" ");
+                return (
+                  <span key={lineIdx} className="block">
+                    {words.map((word, wIdx) => {
+                      const idx = wordCounter++;
+                      return (
+                        <motion.span
+                          key={`${lineIdx}-${wIdx}`}
+                          initial={{ opacity: 0, filter: "blur(14px)", y: 8 }}
+                          animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+                          transition={{
+                            duration: 1.1,
+                            ease,
+                            delay: 0.2 + idx * 0.12,
+                          }}
+                          className="inline-block mr-[0.25em] will-change-[filter,opacity,transform]"
+                        >
+                          {word}
+                        </motion.span>
+                      );
+                    })}
+                  </span>
+                );
+              });
+            })()}
           </h1>
 
           <motion.div
