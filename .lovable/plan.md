@@ -1,89 +1,74 @@
+# Estado del proyecto y guía de migración a GitHub + hosting propio
 
-# Plan · Estética OOH nocturna + Split-Flap Hero
+## 1. Estado actual del proyecto
 
-Nivel de inmersión: 3/5 — ambientación consistente pero sin caer en escenografía cargada. Paleta noche urbana (negro profundo, ámbar cálido, luz de neón).
+CV/portfolio bilingüe (ES/EN) de Juan Gaudino, estilo Apple minimalista con estética OOH/publicidad exterior, en una sola página con panel de administración.
 
-## 1. Quitar el efecto de distorsión del título
+**Rutas**
+- `/` — Sitio público: Hero (foto con máscaras, split-flap, parallax, backdrop de carretera, bokeh, tickers DOOH), About, Experience (timeline dual trabajo/estudio con adjuntos), Projects (casos de estudio con modal fullscreen), Skills, Journey (mapa LATAM→US), Contact, Footer.
+- `/auth` — Login (Google + email/password).
+- `/admin` — CMS completo: textos del sitio, timeline (con upload de imágenes/PDF), skills, campañas (con métricas y galería), mercados del Journey, métricas del About.
 
-En `src/components/cv/Hero.tsx` elimino el filtro SVG `feTurbulence` + `feDisplacementMap`, el estado `nameHover`, y todo el `useEffect` que lo anima. El título queda limpio para recibir el nuevo efecto.
+**Stack**
+- React 19 + TanStack Start v1 (SSR full-stack) + Vite 8 + Tailwind v4.
+- Animaciones: motion (Framer Motion), lenis (smooth scroll).
+- Datos: TanStack Query + Supabase (Lovable Cloud).
 
-## 2. Split-Flap en el título del hero
+## 2. Dependencias de la plataforma Lovable (lo que hay que resolver al salir)
 
-Nuevo componente `src/components/cv/SplitFlap.tsx`:
+Esto es lo importante para tu migración. Tu proyecto depende de Lovable en 4 puntos:
 
-- Cada letra es una "aleta" con perspectiva 3D (`transform-style: preserve-3d`).
-- Al hover sobre el título, cada letra cicla 4–6 caracteres aleatorios (A–Z, símbolos) y "aterriza" en la correcta con un flip mecánico (rotateX 90° → 0°, easing `[0.2, 0.9, 0.3, 1]`).
-- Sonido visual: línea horizontal fina que divide cada aleta (top/bottom) simulando la ranura mecánica del panel Solari.
-- Escalonado por letra (`stagger 20ms`) para el efecto de tablero de aeropuerto.
-- Respeta `prefers-reduced-motion` (queda estático).
-- Se dispara también una vez al montar, no sólo en hover — así el WOW aparece sin interacción.
+### a) Backend = Lovable Cloud (Supabase administrado)
+Toda la data vive en una base Postgres administrada por Lovable:
+- Tablas: `profile_settings`, `timeline_items`, `projects`, `skills`, `markets`, `user_roles`.
+- Storage: bucket con adjuntos (certificados, galerías de campañas) y las fotos del hero.
+- Auth: usuarios, login con Google y email/password, rol admin vía `user_roles` + función `has_role()`.
 
-## 3. Hero como Billboard
+**Al migrar necesitas:**
+1. Crear un proyecto propio en Supabase (gratis) u otro Postgres + storage + auth.
+2. Exportar la data: en Lovable → Cloud → Advanced settings → Export data.
+3. Recrear el schema: las migraciones SQL no están como archivos en el repo (se aplicaron por herramienta), así que habría que generar un dump del schema antes de salir. Puedo generar ese archivo SQL por ti.
+4. Las URLs de storage de los adjuntos/fotos apuntan al proyecto actual: hay que descargar los archivos y re-subirlos al nuevo bucket (o servirlos desde tu propio hosting).
 
-Refactor visual de `Hero.tsx`:
+### b) Variables de entorno
+El código lee (vía `.env`, no commitear valores reales en público):
+- `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (cliente)
+- `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY` (server functions)
 
-- El bloque derecho (retrato) se enmarca dentro de un **billboard SVG**: estructura con dos postes de acero, marco con luces puntuales arriba (bombillas ámbar con `filter: drop-shadow` y pulso sutil), esquineros metálicos.
-- El retrato mantiene el mask actual pero dentro del "cartel".
-- Debajo del billboard, base con sombra proyectada larga hacia el suelo.
-- El texto del hero queda a la izquierda, sobre la escena.
+En tu hosting tendrás que definirlas con los valores de TU nuevo backend.
 
-## 4. Highway parallax de fondo
+### c) Paquetes propietarios de Lovable en package.json
+- `@lovable.dev/vite-tanstack-config` — config de Vite completa (TanStack Start, React, Tailwind, nitro/cloudflare, aliases). Sin este paquete hay que reescribir `vite.config.ts` manualmente (factible: ~40 líneas con los plugins oficiales).
+- `@lovable.dev/cloud-auth-js` — usado solo en `src/integrations/lovable/index.ts` para el login con Google. Reemplazable por `supabase.auth.signInWithOAuth({ provider: "google" })` directo (~10 líneas).
+- Archivos auto-generados de integración (`src/integrations/supabase/*`): funcionan standalone, solo requieren las env vars correctas. Se pueden conservar tal cual.
 
-Nuevo componente `src/components/cv/HighwayBackdrop.tsx` (montado dentro del hero, `-z-10`):
+### d) Build/runtime target
+El build actual apunta a Cloudflare Workers (nitro preset "cloudflare"). Para tu hosting:
+- **Opción A — Cloudflare Pages/Workers**: casi cero cambios.
+- **Opción B — Vercel/Netlify**: cambiar el preset de nitro en la config de Vite.
+- **Opción C — VPS/Node propio**: preset `node-server`, corres `bun run build` y sirves el output con Node.
+- **Opción D — sitio estático**: no recomendado sin cambios, porque el sitio usa SSR y server functions.
 
-- Horizonte bajo con degradado noche → magenta apagado → negro.
-- Línea de carretera en perspectiva (SVG) desapareciendo en el horizonte, con líneas discontinuas animadas hacia adelante (loop infinito lento).
-- 6–10 "estelas" de luces de auto: pares de puntos rojos/blancos moviéndose por los carriles a distintas velocidades, con blur y bloom.
-- Todo respeta reduced-motion (estático).
+## 3. Plan de migración recomendado
 
-## 5. City lights bokeh en secciones clave
+1. **Conectar GitHub ahora** (Plus menu → GitHub → Connect). Sync bidireccional: trabajas local, pusheas, y Lovable refleja los cambios. No hace falta "salir" de golpe.
+2. **Generar dump del schema SQL** (puedo producir un `supabase/schema.sql` completo con tablas, enums, RLS, funciones y grants).
+3. **Crear tu Supabase propio**, aplicar el schema, migrar data (export desde Lovable Cloud) y archivos de storage.
+4. **Reemplazar `@lovable.dev/cloud-auth-js`** por la llamada nativa de Supabase y **reescribir `vite.config.ts`** sin el paquete de Lovable.
+5. **Configurar Google OAuth** en tu Supabase (Google Cloud Console + provider config) con los redirect URLs de tu dominio.
+6. **Deploy** en tu hosting con las env vars nuevas.
+7. Verificar: `/` carga data, login admin funciona, uploads del admin funcionan.
 
-Nuevo `src/components/cv/CityBokeh.tsx`: capa fija detrás de About, Journey y Contact con 30–40 círculos borrosos (ámbar, blanco cálido, cian tenue) distribuidos aleatoriamente, con `filter: blur(24px)` y opacidad baja (6–12%). Drift suave con `motion` (translate ±20px, 20s loop).
+## 4. Lo que NO se puede llevar
 
-## 6. Ticker DOOH
+- La base de datos se exporta, pero el servicio administrado no: necesitas backend propio desde el día 1 del hosting externo, o el sitio público mostrará los fallbacks estáticos del diccionario (el sitio igual renderiza, pero sin ediciones del admin).
+- Las fotos del hero/adjuntos hay que re-alojarlas (hoy son URLs del storage de Lovable).
 
-Nuevo `src/components/cv/DoohTicker.tsx`: banda horizontal delgada tipo pantalla LED (fondo negro, texto ámbar monoespaciado, scanlines sutiles con `repeating-linear-gradient`). Contenido animado (marquee infinito):
+## Qué haría en este proyecto si apruebas el plan
 
-- "IMPRESSIONS · 2.4B+"
-- "MARKETS · 7"
-- "CAMPAIGNS · 120+"
-- "YEARS · 15+"
-- "OOH · DOOH · PROGRAMMATIC"
+1. Crear `supabase/schema.sql` con el dump completo del schema actual (tablas, enums, políticas RLS, funciones `has_role`/`claim_admin`, bucket de storage).
+2. Crear `MIGRATION.md` en la raíz con la guía paso a paso adaptada a este código (env vars, reemplazo de paquetes Lovable, presets de deploy por hosting).
+3. (Opcional, ahora o después) Reemplazar `@lovable.dev/cloud-auth-js` por Supabase OAuth nativo para eliminar la dependencia propietaria.
+4. (Opcional) Reescribir `vite.config.ts` sin `@lovable.dev/vite-tanstack-config` usando los plugins oficiales de TanStack/Vite/Tailwind.
 
-Se monta dos veces: una justo debajo del hero (transición al About) y otra antes del footer. Los valores se leen de `profile_settings` (stats existentes) para que sigan siendo editables desde admin — no se agrega tabla nueva.
-
-## 7. Paleta y tokens
-
-En `src/styles.css` agrego tokens semánticos para el modo nocturno:
-
-- `--ooh-amber: oklch(0.82 0.16 75)` (luz de billboard)
-- `--ooh-neon: oklch(0.75 0.22 320)` (neón magenta)
-- `--ooh-road: oklch(0.15 0.02 260)` (asfalto)
-- `--ooh-glow`: gradiente compuesto reutilizable
-
-Se aplican solo en los nuevos componentes; el resto del sitio conserva sus tokens actuales.
-
-## 8. Cambios en `src/routes/index.tsx`
-
-- Se envuelve la sección Hero con `HighwayBackdrop`.
-- Se agrega `DoohTicker` después del hero y antes del footer.
-- `CityBokeh` se monta como capa global fija detrás del contenido.
-
-## Archivos afectados
-
-Nuevos:
-- `src/components/cv/SplitFlap.tsx`
-- `src/components/cv/HighwayBackdrop.tsx`
-- `src/components/cv/CityBokeh.tsx`
-- `src/components/cv/DoohTicker.tsx`
-
-Editados:
-- `src/components/cv/Hero.tsx` (quitar distorsión, montar SplitFlap + marco billboard)
-- `src/routes/index.tsx` (integrar backdrop, bokeh, tickers)
-- `src/styles.css` (tokens OOH)
-
-## Fuera de alcance
-
-- No se toca el admin ni el schema.
-- No se cambia el contenido textual del CV.
-- No se altera Journey, Projects, Skills, Contact más allá de la capa de bokeh detrás.
+Los pasos 1–2 no cambian nada del funcionamiento actual; 3–4 dejan el repo 100% portable.
