@@ -37,6 +37,7 @@ npm run dev
 Comandos de validación:
 
 ```sh
+npm run lint
 npm run test
 npm run typecheck
 npm run build
