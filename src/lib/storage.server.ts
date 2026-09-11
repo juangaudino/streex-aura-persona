@@ -50,7 +50,7 @@ function getCachedSupabaseAdmin() {
   return supabaseAdmin;
 }
 
-function isAllowedPath(bucket: PortfolioStorageBucket, path: string): boolean {
+export function isAllowedStoragePath(bucket: PortfolioStorageBucket, path: string): boolean {
   if (!path || path.length > PATH_LIMIT) return false;
   return bucket === "cv-projects" ? path.startsWith("gallery/") : path.startsWith("timeline/");
 }
@@ -60,7 +60,7 @@ function collectPaths(raw: unknown, bucket: PortfolioStorageBucket, allowed: Set
   for (const value of raw) {
     if (!value || typeof value !== "object") continue;
     const path = "path" in value && typeof value.path === "string" ? value.path : "";
-    if (isAllowedPath(bucket, path)) allowed.add(path);
+    if (isAllowedStoragePath(bucket, path)) allowed.add(path);
   }
 }
 
@@ -85,7 +85,7 @@ export async function signPublishedStoragePaths(
   bucket: PortfolioStorageBucket,
   paths: string[],
 ): Promise<Record<string, string>> {
-  const requested = [...new Set(paths)].filter((path) => isAllowedPath(bucket, path));
+  const requested = [...new Set(paths)].filter((path) => isAllowedStoragePath(bucket, path));
   if (!requested.length) return {};
 
   const published = await findPublishedPaths(bucket);

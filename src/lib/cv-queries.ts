@@ -139,8 +139,14 @@ async function getRefreshedUrls(
 ): Promise<Record<string, string>> {
   if (!paths.length) return {};
   try {
-    const result = await refreshStorageUrls({ data: { bucket, paths } });
-    return result.urls;
+    const uniquePaths = [...new Set(paths)];
+    const batches = Array.from({ length: Math.ceil(uniquePaths.length / 100) }, (_, index) =>
+      uniquePaths.slice(index * 100, (index + 1) * 100),
+    );
+    const results = await Promise.all(
+      batches.map((batch) => refreshStorageUrls({ data: { bucket, paths: batch } })),
+    );
+    return Object.assign({}, ...results.map((result) => result.urls));
   } catch {
     // Keep legacy URLs working while the independent Worker is being configured.
     return {};
