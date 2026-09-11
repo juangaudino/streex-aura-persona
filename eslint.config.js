@@ -36,5 +36,13 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  {
+    // Radix/shadcn components intentionally export variants, subcomponents,
+    // or context hooks from the same module; Fast Refresh supports this pattern.
+    files: ["src/components/ui/**/*.tsx", "src/hooks/use-theme.tsx"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
+  },
   eslintPluginPrettier,
 );
