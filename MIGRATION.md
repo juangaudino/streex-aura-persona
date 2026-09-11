@@ -159,7 +159,8 @@ el modelo de ejecución; no se debe inferir compatibilidad de un build verde.
 - [ ] Migrar y validar datos reales.
 - [ ] Configurar Google OAuth y el dominio final.
 - [ ] Publicar el Worker propio y hacer QA autenticado.
-- [ ] Decidir si se actualiza el README histórico con la documentación final.
+- [x] README actualizado con el estado independiente y la referencia histórica
+      al deployment de Lovable.
 
 Hasta completar los elementos pendientes, el repositorio es portable a nivel
 de código y build, pero todavía no constituye una migración operativa completa
