@@ -52,12 +52,13 @@ existían. Por eso no se debe asumir que el Storage actual está operativo.
 
 ### Gate de seguridad antes de hacerlo público
 
-El flujo heredado permite registro público y ofrece `claim_admin()` para que la
-primera cuenta autenticada reclame el único rol admin. Esto sirve únicamente
-para bootstrap controlado: antes del deploy público hay que crear el admin del
-propietario y desactivar el registro público en Supabase Auth, o reemplazar el
-bootstrap por una allowlist/inserción administrativa explícita. No se debe
-publicar dejando abierta la carrera de la primera cuenta.
+El repositorio ya no muestra registro público ni expone `claim_admin()`: el
+bootstrap del propietario es una inserción administrativa explícita mediante
+`supabase/bootstrap_admin.sql.example`. Aun así, Auth conserva su propia
+configuración en cada proyecto Supabase; antes del deploy público hay que crear
+el admin del propietario y desactivar el registro público, o reemplazarlo por
+una allowlist controlada. No se debe publicar dejando abierta la carrera de la
+primera cuenta.
 
 ## 2. Migrar datos y archivos
 
