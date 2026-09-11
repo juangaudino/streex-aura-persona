@@ -10,6 +10,7 @@
     "deploy": "npm run typecheck && npm run build && wrangler deploy",
     "cf-typegen": "wrangler types",
     "preview": "vite preview",
+    "test": "vitest run",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write ."
@@ -91,6 +92,7 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^8.0.16",
+    "vitest": "5.0.0",
     "wrangler": "4.130.0"
   }
 }

@@ -86,6 +86,7 @@ el browser ni `wrangler.jsonc`.
 ```bash
 npm install
 npm run dev
+npm run test
 npm run build
 npx tsc --noEmit
 npx wrangler deploy --dry-run
@@ -118,6 +119,7 @@ el modelo de ejecución; no se debe inferir compatibilidad de un build verde.
 - [x] Retratos principales servidos desde el repositorio.
 - [x] `.env` fuera del control de versiones.
 - [x] Migraciones locales presentes y Storage documentado.
+- [x] Tests unitarios y validaciones de build documentados.
 - [ ] Crear y seleccionar el proyecto Supabase destino.
 - [ ] Aplicar migraciones al destino y verificar RLS/Storage.
 - [ ] Migrar y validar datos reales.
