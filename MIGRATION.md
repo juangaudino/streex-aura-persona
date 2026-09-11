@@ -19,9 +19,9 @@ La capa de aplicación ya no depende del runtime de Lovable:
 - `.env` ya no está versionado. Usa `.env.example` como plantilla.
 
 Todavía existen referencias históricas a Lovable en `README.md` y en este
-documento únicamente como contexto de migración. El despliegue público
-existente también continúa siendo el sitio heredado hasta que se publique un
-Worker propio.
+documento únicamente como contexto de migración. El despliegue heredado sigue
+existiendo como referencia, pero el Worker independiente ya está publicado en
+el dominio propio de la aplicación.
 
 El destino Supabase independiente ya creado y verificado es
 `streex-aura-persona` (`ynbpclhwshbilbdnerdu`, región `us-west-2`). Sus siete
@@ -29,11 +29,12 @@ migraciones registradas incluyen el esquema, Storage privado y el helper RLS
 privado. Los asesores actuales de seguridad y rendimiento no reportan
 hallazgos.
 
-Cloudflare también está autenticado en la cuenta correcta, pero el Worker
-`streex-aura-persona` todavía no existe y, por tanto, aún no tiene secretos ni
-deployments. El primer despliegue deberá recibir los tres secretos declarados
-en `wrangler.jsonc`; el valor de `SUPABASE_SERVICE_ROLE_KEY` debe aportarse
-localmente y nunca enviarse por chat ni subirse al repositorio.
+Cloudflare está autenticado en la cuenta correcta y el Worker
+`streex-aura-persona` está publicado en `persona.getstreex.com`. El build
+genera `dist/server/.dev.vars` con los tres secretos server-only y el script
+`npm run deploy` lo pasa explícitamente a Wrangler; `dist/` está ignorado por
+Git y la `SUPABASE_SERVICE_ROLE_KEY` nunca debe enviarse por chat ni subirse al
+repositorio.
 
 ## 1. Crear el backend destino
 
@@ -135,17 +136,19 @@ qué gestor será el estándar del CI.
 
 ## 5. Deploy independiente
 
-El repositorio está preparado para Cloudflare Workers:
+El repositorio está desplegado en Cloudflare Workers:
 
 ```bash
 npm run deploy
 ```
 
-Antes del primer deploy configura las variables en el entorno del Worker,
-confirma el nombre del Worker en `wrangler.jsonc` y decide el dominio público.
 `wrangler.jsonc` declara como obligatorias `SUPABASE_URL`,
-`SUPABASE_PUBLISHABLE_KEY` y `SUPABASE_SERVICE_ROLE_KEY`; almacénalas como
-secrets del Worker antes de desplegar:
+`SUPABASE_PUBLISHABLE_KEY` y `SUPABASE_SERVICE_ROLE_KEY`. El build prepara un
+archivo temporal dentro de `dist/server/` y `npm run deploy` lo pasa a Wrangler
+como `--secrets-file`; no uses el `.env` completo como archivo de secrets
+porque también contiene variables del navegador.
+
+Para configurar o rotar secretos directamente en un Worker ya existente:
 
 ```bash
 npx wrangler secret put SUPABASE_URL
@@ -177,8 +180,9 @@ el modelo de ejecución; no se debe inferir compatibilidad de un build verde.
 - [x] Aplicar migraciones al destino y verificar RLS/Storage.
 - [x] Confirmar en el destino el gate de asesores de seguridad y rendimiento.
 - [ ] Migrar y validar datos reales.
-- [ ] Configurar Google OAuth y el dominio final.
-- [ ] Publicar el Worker propio y hacer QA autenticado.
+- [ ] Configurar Google OAuth.
+- [x] Configurar el dominio final y publicar el Worker propio.
+- [ ] Hacer QA autenticado.
 - [x] README actualizado con el estado independiente y la referencia histórica
       al deployment de Lovable.
 
