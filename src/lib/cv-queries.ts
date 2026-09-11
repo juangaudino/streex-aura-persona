@@ -63,13 +63,17 @@ export type ProjectGalleryItem = {
 export function readGallery(raw: unknown): ProjectGalleryItem[] {
   if (!Array.isArray(raw)) return [];
   return raw
-    .filter((g): g is Record<string, unknown> => !!g && typeof g === "object" && typeof (g as any).url === "string")
+    .filter(
+      (g): g is Record<string, unknown> =>
+        !!g && typeof g === "object" && typeof (g as Record<string, unknown>).path === "string",
+    )
     .map((g) => ({
       path: String(g.path ?? ""),
-      url: String(g.url ?? ""),
+      url: typeof g.url === "string" ? g.url : "",
       caption_es: String(g.caption_es ?? ""),
       caption_en: String(g.caption_en ?? ""),
-    }));
+    }))
+    .filter((g) => g.path.length > 0);
 }
 
 export const projectsQuery = queryOptions({
@@ -114,10 +118,19 @@ export type TimelineAttachment = {
 
 export function readAttachments(raw: unknown): TimelineAttachment[] {
   if (!Array.isArray(raw)) return [];
-  return raw.filter(
-    (a): a is TimelineAttachment =>
-      !!a && typeof a === "object" && typeof (a as any).url === "string" && typeof (a as any).path === "string",
-  );
+  return raw
+    .filter(
+      (a): a is Record<string, unknown> =>
+        !!a && typeof a === "object" && typeof (a as Record<string, unknown>).path === "string",
+    )
+    .map((a) => ({
+      path: String(a.path ?? ""),
+      url: typeof a.url === "string" ? a.url : "",
+      name: String(a.name ?? ""),
+      type: String(a.type ?? ""),
+      size: typeof a.size === "number" ? a.size : 0,
+    }))
+    .filter((a) => a.path.length > 0);
 }
 
 async function getRefreshedUrls(

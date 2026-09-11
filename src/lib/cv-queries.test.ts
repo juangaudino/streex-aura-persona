@@ -29,24 +29,30 @@ describe("CV data normalizers", () => {
     ]);
   });
 
-  it("filters invalid gallery entries", () => {
+  it("keeps gallery paths even when a legacy URL is absent", () => {
     expect(
       readGallery([
         { path: "gallery/one.jpg", url: "/one.jpg", caption_es: "Uno" },
-        { path: "gallery/missing.jpg" },
+        { path: "gallery/missing.jpg", caption_en: "Missing URL" },
         "not-an-entry",
       ]),
     ).toEqual([
-      {
-        path: "gallery/one.jpg",
-        url: "/one.jpg",
-        caption_es: "Uno",
-        caption_en: "",
-      },
-    ]);
+        {
+          path: "gallery/one.jpg",
+          url: "/one.jpg",
+          caption_es: "Uno",
+          caption_en: "",
+        },
+        {
+          path: "gallery/missing.jpg",
+          url: "",
+          caption_es: "",
+          caption_en: "Missing URL",
+        },
+      ]);
   });
 
-  it("keeps only attachments with both a path and URL", () => {
+  it("keeps attachment paths even when a legacy URL is absent", () => {
     expect(
       readAttachments([
         { path: "cv/a.pdf", url: "/a.pdf", name: "A", type: "application/pdf", size: 10 },
@@ -55,6 +61,7 @@ describe("CV data normalizers", () => {
       ]),
     ).toEqual([
       { path: "cv/a.pdf", url: "/a.pdf", name: "A", type: "application/pdf", size: 10 },
+      { path: "cv/missing-url.pdf", url: "", name: "Missing URL", type: "", size: 0 },
     ]);
   });
 });
