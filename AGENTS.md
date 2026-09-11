@@ -1,10 +1,9 @@
-<!-- LOVABLE:BEGIN -->
-> [!IMPORTANT]
-> This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
-> published git history — force pushing, or rebasing/amending/squashing commits
-> that are already pushed — as it rewrites history on Lovable's side and the
-> user will likely lose their project history.
->
-> Commits you push to the connected branch sync back to Lovable and show up in
-> the editor, so keep the branch in a working state.
-<!-- LOVABLE:END -->
+# Streex Aura Persona
+
+## Working agreements
+
+- Inspect the current repository and remote state before changing files.
+- Keep changes scoped to one migration or product concern at a time.
+- Do not commit secrets or service-role credentials.
+- Validate with the narrowest relevant checks, then run the production build.
+- Commit and push each validated step to `origin/main`.

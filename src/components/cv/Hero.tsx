@@ -8,8 +8,9 @@ import { profileQuery } from "@/lib/cv-queries";
 import { MagneticButton } from "./MagneticButton";
 
 import { HighwayBackdrop } from "./HighwayBackdrop";
-import portraitLightAsset from "@/assets/juan-light.png.asset.json";
-import portraitDarkAsset from "@/assets/juan-dark.png.asset.json";
+
+const portraitLightAsset = "/juan-light.png";
+const portraitDarkAsset = "/juan-dark.png";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -81,7 +82,7 @@ export function Hero() {
   }, [mx, my]);
 
   const matchedPortrait =
-    theme === "dark" ? portraitDarkAsset.url : portraitLightAsset.url;
+    theme === "dark" ? portraitDarkAsset : portraitLightAsset;
 
   return (
     <section
