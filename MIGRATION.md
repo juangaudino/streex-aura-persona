@@ -27,7 +27,16 @@ El destino Supabase independiente ya creado y verificado es
 `streex-aura-persona` (`ynbpclhwshbilbdnerdu`, región `us-west-2`). Sus ocho
 migraciones registradas incluyen el esquema, Storage privado, el helper RLS
 privado y la fila singleton inicial de `profile_settings`. Los asesores
-actuales de seguridad y rendimiento no reportan hallazgos.
+de base de datos no reportan hallazgos; el asesor de Auth sí indica que la
+protección contra contraseñas filtradas todavía está desactivada y debe
+activarse desde el Dashboard.
+
+La siguiente capa ya está aplicada en el destino: existe el perfil base
+`juanooh`, cada tabla de contenido tiene una relación `profile_id` y
+`profile_access_links` almacena únicamente hashes de enlaces compartibles. La
+lectura pública antigua se mantiene temporalmente durante la transición; el
+bloqueo de perfiles privados se desplegará junto con las rutas y funciones del
+Worker para evitar una ventana en la que el frontend no pueda cargar el CV.
 
 La historia de migraciones también fue reconciliada: las versiones que el
 aplicador remoto había registrado con timestamps nuevos se marcaron como
@@ -191,8 +200,12 @@ el modelo de ejecución; no se debe inferir compatibilidad de un build verde.
 - [x] Aplicar migraciones al destino y verificar RLS/Storage.
 - [x] Crear la fila singleton inicial de `profile_settings` sin sobrescribir datos.
 - [x] Reconciliar la historia local/remota de migraciones.
-- [ ] Crear la cuenta propietaria en Auth y asignarle `admin`.
+- [x] Crear el modelo multi-perfil y el perfil inicial `juanooh`.
+- [x] Crear la cuenta propietaria en Auth y asignarle `admin`.
 - [ ] Configurar Google OAuth y las URLs finales de redirección.
+- [ ] Crear la landing pública en `/` y rutas por perfil.
+- [ ] Implementar enlaces privados revocables sin login.
+- [ ] Cerrar lectura pública de contenido mediante RLS/Worker.
 - [ ] Migrar y validar los datos/contenidos reales del proyecto heredado.
 - [ ] Ejecutar QA autenticado del panel Admin y de la gestión de Storage.
 - [x] Confirmar en el destino el gate de asesores de seguridad y rendimiento.

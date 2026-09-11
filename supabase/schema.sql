@@ -5,8 +5,8 @@
 --
 -- Contenido:
 --   1. Enums (app_role, timeline_kind)
---   2. Tablas: profile_settings, timeline_items, projects, skills, markets,
---      user_roles
+--   2. Tablas: profiles, profile_settings, timeline_items, projects, skills,
+--      markets, user_roles, profile_access_links
 --   3. Grants (PostgREST no otorga permisos por defecto)
 --   4. RLS: lectura pública, escritura solo admin
 --   5. Funciones: has_role(), tg_set_updated_at()
@@ -24,10 +24,22 @@ create type public.timeline_kind as enum ('work', 'study');
 -- 2. Tablas
 -- ----------------------------------------------------------------------------
 
--- Configuración global del sitio (una sola fila, singleton = true)
+-- Perfiles independientes publicados bajo un slug privado.
+create table public.profiles (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null unique,
+  display_name text not null default '',
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint profiles_slug_format check (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$')
+);
+
+-- Configuración específica de cada perfil.
 create table public.profile_settings (
   id uuid primary key default gen_random_uuid(),
-  singleton boolean not null default true unique,
+  singleton boolean not null default true,
+  profile_id uuid references public.profiles(id) on delete cascade,
 
   name text not null default '',
   email text not null default '',
@@ -102,6 +114,7 @@ create table public.profile_settings (
 -- Experiencia laboral y estudios (timeline dual)
 create table public.timeline_items (
   id uuid primary key default gen_random_uuid(),
+  profile_id uuid references public.profiles(id) on delete cascade,
   kind public.timeline_kind not null,
   org text not null default '',
   title_es text not null default '',
@@ -124,6 +137,7 @@ create table public.timeline_items (
 -- Campañas / proyectos destacados con case study
 create table public.projects (
   id uuid primary key default gen_random_uuid(),
+  profile_id uuid references public.profiles(id) on delete cascade,
   name_es text not null default '',
   name_en text not null default '',
   desc_es text not null default '',
@@ -150,6 +164,7 @@ create table public.projects (
 -- Skills agrupadas por categoría
 create table public.skills (
   id uuid primary key default gen_random_uuid(),
+  profile_id uuid references public.profiles(id) on delete cascade,
   name text not null,
   category text not null default 'general',
   category_label_es text not null default '',
@@ -161,6 +176,7 @@ create table public.skills (
 -- Ciudades del mapa Journey (LATAM → US)
 create table public.markets (
   id uuid primary key default gen_random_uuid(),
+  profile_id uuid references public.profiles(id) on delete cascade,
   city text not null,
   country text not null,
   country_code text,
@@ -185,6 +201,19 @@ create table public.user_roles (
   unique (user_id, role)
 );
 
+-- Tokens de acceso privado; solo los consulta el Worker server-side.
+create table public.profile_access_links (
+  id uuid primary key default gen_random_uuid(),
+  profile_id uuid not null references public.profiles(id) on delete cascade,
+  token_hash text not null unique,
+  label text not null default '',
+  expires_at timestamptz,
+  revoked_at timestamptz,
+  created_at timestamptz not null default now(),
+  last_used_at timestamptz,
+  constraint profile_access_links_token_hash_format check (length(token_hash) = 64)
+);
+
 -- Garantiza que el bootstrap pueda tener un solo admin incluso bajo concurrencia.
 create unique index user_roles_one_admin_idx
   on public.user_roles (role)
@@ -195,6 +224,7 @@ create unique index user_roles_one_admin_idx
 -- ----------------------------------------------------------------------------
 grant select on public.profile_settings to anon, authenticated;
 grant select, insert, update, delete on public.profile_settings to authenticated;
+grant select, insert, update, delete on public.profiles to authenticated;
 grant select on public.timeline_items to anon, authenticated;
 grant select, insert, update, delete on public.timeline_items to authenticated;
 grant select on public.projects to anon, authenticated;
@@ -206,11 +236,13 @@ grant select, insert, update, delete on public.markets to authenticated;
 grant select on public.user_roles to authenticated;
 
 grant all on public.profile_settings to service_role;
+grant all on public.profiles to service_role;
 grant all on public.timeline_items to service_role;
 grant all on public.projects to service_role;
 grant all on public.skills to service_role;
 grant all on public.markets to service_role;
 grant all on public.user_roles to service_role;
+grant all on public.profile_access_links to service_role;
 
 -- ----------------------------------------------------------------------------
 -- 5. Funciones (antes de las políticas que las usan)
@@ -258,11 +290,32 @@ revoke all on function public.tg_set_updated_at() from public;
 -- ----------------------------------------------------------------------------
 
 alter table public.profile_settings enable row level security;
+alter table public.profiles enable row level security;
 alter table public.timeline_items enable row level security;
 alter table public.projects enable row level security;
 alter table public.skills enable row level security;
 alter table public.markets enable row level security;
 alter table public.user_roles enable row level security;
+alter table public.profile_access_links enable row level security;
+
+create policy "Admins read profiles" on public.profiles
+  for select to authenticated
+  using ((select private.has_role((select auth.uid()), 'admin'::public.app_role)));
+create policy "Admins insert profiles" on public.profiles
+  for insert to authenticated
+  with check ((select private.has_role((select auth.uid()), 'admin'::public.app_role)));
+create policy "Admins update profiles" on public.profiles
+  for update to authenticated
+  using ((select private.has_role((select auth.uid()), 'admin'::public.app_role)))
+  with check ((select private.has_role((select auth.uid()), 'admin'::public.app_role)));
+create policy "Admins delete profiles" on public.profiles
+  for delete to authenticated
+  using ((select private.has_role((select auth.uid()), 'admin'::public.app_role)));
+
+create policy "No direct access to profile links" on public.profile_access_links
+  for all to anon, authenticated
+  using (false)
+  with check (false);
 
 -- profile_settings
 create policy "Public read profile" on public.profile_settings
@@ -313,12 +366,28 @@ create policy "Users read own roles" on public.user_roles
 -- ----------------------------------------------------------------------------
 create trigger trg_profile_updated before update on public.profile_settings
   for each row execute function public.tg_set_updated_at();
+create trigger profiles_set_updated_at before update on public.profiles
+  for each row execute function public.tg_set_updated_at();
 create trigger trg_timeline_updated before update on public.timeline_items
   for each row execute function public.tg_set_updated_at();
 create trigger trg_projects_updated before update on public.projects
   for each row execute function public.tg_set_updated_at();
 create trigger markets_set_updated_at before update on public.markets
   for each row execute function public.tg_set_updated_at();
+
+create unique index profile_settings_profile_id_key
+  on public.profile_settings(profile_id)
+  where profile_id is not null;
+create index timeline_items_profile_id_sort_order_idx
+  on public.timeline_items(profile_id, sort_order desc);
+create index projects_profile_id_sort_order_idx
+  on public.projects(profile_id, sort_order);
+create index skills_profile_id_sort_order_idx
+  on public.skills(profile_id, sort_order);
+create index markets_profile_id_sort_order_idx
+  on public.markets(profile_id, sort_order);
+create index profile_access_links_profile_id_idx
+  on public.profile_access_links(profile_id);
 
 -- ----------------------------------------------------------------------------
 -- 7. Storage
@@ -369,10 +438,16 @@ create policy "Admins delete CV storage" on storage.objects
   );
 
 -- ----------------------------------------------------------------------------
--- Fila inicial de profile_settings (el Admin la edita después)
+-- Perfil y fila iniciales (el Admin los edita después).
 -- ----------------------------------------------------------------------------
-insert into public.profile_settings (singleton, name)
-select true, 'Juan Gaudino'
-where not exists (
-  select 1 from public.profile_settings where singleton = true
+insert into public.profiles (slug, display_name)
+values ('juanooh', 'Juan OOH')
+on conflict (slug) do nothing;
+
+insert into public.profile_settings (singleton, profile_id, name)
+select true, id, 'Juan Gaudino'
+from public.profiles
+where slug = 'juanooh'
+  and not exists (
+  select 1 from public.profile_settings where profile_id = public.profiles.id
 );

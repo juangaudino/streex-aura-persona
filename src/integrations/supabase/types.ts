@@ -20,6 +20,7 @@ export type Database = {
           lng: number;
           note_en: string | null;
           note_es: string | null;
+          profile_id: string | null;
           sort_order: number;
           updated_at: string;
           year_from: number | null;
@@ -36,6 +37,7 @@ export type Database = {
           lng: number;
           note_en?: string | null;
           note_es?: string | null;
+          profile_id?: string | null;
           sort_order?: number;
           updated_at?: string;
           year_from?: number | null;
@@ -52,12 +54,62 @@ export type Database = {
           lng?: number;
           note_en?: string | null;
           note_es?: string | null;
+          profile_id?: string | null;
           sort_order?: number;
           updated_at?: string;
           year_from?: number | null;
           year_to?: number | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "markets_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      profile_access_links: {
+        Row: {
+          created_at: string;
+          expires_at: string | null;
+          id: string;
+          label: string;
+          last_used_at: string | null;
+          profile_id: string;
+          revoked_at: string | null;
+          token_hash: string;
+        };
+        Insert: {
+          created_at?: string;
+          expires_at?: string | null;
+          id?: string;
+          label?: string;
+          last_used_at?: string | null;
+          profile_id: string;
+          revoked_at?: string | null;
+          token_hash: string;
+        };
+        Update: {
+          created_at?: string;
+          expires_at?: string | null;
+          id?: string;
+          label?: string;
+          last_used_at?: string | null;
+          profile_id?: string;
+          revoked_at?: string | null;
+          token_hash?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "profile_access_links_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       profile_settings: {
         Row: {
@@ -113,6 +165,7 @@ export type Database = {
           phone: string;
           photo_dark_url: string;
           photo_light_url: string;
+          profile_id: string | null;
           projects_eyebrow_en: string;
           projects_eyebrow_es: string;
           projects_title_en: string;
@@ -177,6 +230,7 @@ export type Database = {
           phone?: string;
           photo_dark_url?: string;
           photo_light_url?: string;
+          profile_id?: string | null;
           projects_eyebrow_en?: string;
           projects_eyebrow_es?: string;
           projects_title_en?: string;
@@ -241,6 +295,7 @@ export type Database = {
           phone?: string;
           photo_dark_url?: string;
           photo_light_url?: string;
+          profile_id?: string | null;
           projects_eyebrow_en?: string;
           projects_eyebrow_es?: string;
           projects_title_en?: string;
@@ -250,6 +305,41 @@ export type Database = {
           skills_eyebrow_es?: string;
           skills_title_en?: string;
           skills_title_es?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "profile_settings_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      profiles: {
+        Row: {
+          created_at: string;
+          display_name: string;
+          id: string;
+          is_active: boolean;
+          slug: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          display_name?: string;
+          id?: string;
+          is_active?: boolean;
+          slug: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          display_name?: string;
+          id?: string;
+          is_active?: boolean;
+          slug?: string;
           updated_at?: string;
         };
         Relationships: [];
@@ -273,6 +363,7 @@ export type Database = {
           name_es: string;
           outcome_en: string;
           outcome_es: string;
+          profile_id: string | null;
           sort_order: number;
           stack: string;
           updated_at: string;
@@ -297,6 +388,7 @@ export type Database = {
           name_es?: string;
           outcome_en?: string;
           outcome_es?: string;
+          profile_id?: string | null;
           sort_order?: number;
           stack?: string;
           updated_at?: string;
@@ -321,13 +413,22 @@ export type Database = {
           name_es?: string;
           outcome_en?: string;
           outcome_es?: string;
+          profile_id?: string | null;
           sort_order?: number;
           stack?: string;
           updated_at?: string;
           verticals?: string[];
           year?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "projects_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       skills: {
         Row: {
@@ -337,6 +438,7 @@ export type Database = {
           created_at: string;
           id: string;
           name: string;
+          profile_id: string | null;
           sort_order: number;
         };
         Insert: {
@@ -346,6 +448,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           name: string;
+          profile_id?: string | null;
           sort_order?: number;
         };
         Update: {
@@ -355,9 +458,18 @@ export type Database = {
           created_at?: string;
           id?: string;
           name?: string;
+          profile_id?: string | null;
           sort_order?: number;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "skills_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       timeline_items: {
         Row: {
@@ -372,6 +484,7 @@ export type Database = {
           org: string;
           period_label_en: string;
           period_label_es: string;
+          profile_id: string | null;
           sort_order: number;
           start_date: string | null;
           summary_en: string;
@@ -392,6 +505,7 @@ export type Database = {
           org?: string;
           period_label_en?: string;
           period_label_es?: string;
+          profile_id?: string | null;
           sort_order?: number;
           start_date?: string | null;
           summary_en?: string;
@@ -412,6 +526,7 @@ export type Database = {
           org?: string;
           period_label_en?: string;
           period_label_es?: string;
+          profile_id?: string | null;
           sort_order?: number;
           start_date?: string | null;
           summary_en?: string;
@@ -420,7 +535,15 @@ export type Database = {
           title_es?: string;
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "timeline_items_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       user_roles: {
         Row: {
