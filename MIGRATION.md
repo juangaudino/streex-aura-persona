@@ -45,6 +45,9 @@ Worker propio.
    una inserción controlada en `user_roles`; puedes partir de
    `supabase/bootstrap_admin.sql.example` (el repositorio ya no expone
    `claim_admin()`).
+7. Ejecuta `supabase/verify_destination.sql` en el SQL Editor del destino y
+   revisa que las tablas, RLS, buckets privados, límites de Storage y permisos
+   de funciones coincidan con el modelo esperado.
 
 El proyecto Supabase actualmente configurado durante la auditoría respondió
 correctamente a REST, pero los buckets `cv-attachments` y `cv-projects` no
