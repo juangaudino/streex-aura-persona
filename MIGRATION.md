@@ -117,6 +117,9 @@ npm run deploy
 
 Antes del primer deploy configura las variables en el entorno del Worker,
 confirma el nombre del Worker en `wrangler.jsonc` y decide el dominio público.
+La cuenta local debe estar autenticada con `npx wrangler login`; un
+`wrangler deploy --temporary` solo crea un preview y no sustituye el Worker
+propio.
 El `--dry-run` local solo valida el empaquetado; no prueba autenticación,
 dominios, bindings ni datos de producción.
 
