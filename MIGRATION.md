@@ -47,6 +47,15 @@ El proyecto Supabase actualmente configurado durante la auditoría respondió
 correctamente a REST, pero los buckets `cv-attachments` y `cv-projects` no
 existían. Por eso no se debe asumir que el Storage actual está operativo.
 
+### Gate de seguridad antes de hacerlo público
+
+El flujo heredado permite registro público y ofrece `claim_admin()` para que la
+primera cuenta autenticada reclame el único rol admin. Esto sirve únicamente
+para bootstrap controlado: antes del deploy público hay que crear el admin del
+propietario y desactivar el registro público en Supabase Auth, o reemplazar el
+bootstrap por una allowlist/inserción administrativa explícita. No se debe
+publicar dejando abierta la carrera de la primera cuenta.
+
 ## 2. Migrar datos y archivos
 
 Las tablas de contenido son `profile_settings`, `timeline_items`, `projects`,
