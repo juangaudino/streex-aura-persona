@@ -315,7 +315,8 @@ create trigger markets_set_updated_at before update on public.markets
 
 -- ----------------------------------------------------------------------------
 -- 7. Storage
--- Buckets privados; el frontend genera signed URLs (10 años) al subir.
+-- Buckets privados; el frontend genera signed URLs de corta duración al subir
+-- y las consultas públicas las renuevan desde el Worker.
 -- El límite de tamaño y MIME también se impone en Storage, no solo en la UI.
 -- Se crean aquí para que un proyecto nuevo sea reproducible.
 -- ----------------------------------------------------------------------------

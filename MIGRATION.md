@@ -70,9 +70,12 @@ Los archivos administrables usan dos buckets privados:
 - `cv-attachments`: adjuntos de experiencias.
 - `cv-projects`: galerías de proyectos.
 
-Las URLs guardadas en `attachments` y `gallery` pueden ser URLs firmadas y no
-deben copiarse como si fueran permanentes. Sube los archivos al destino,
-conserva sus paths y genera nuevas URLs según el modelo de acceso elegido.
+Las URLs guardadas en `attachments` y `gallery` son valores de compatibilidad y
+no deben copiarse como si fueran permanentes. La app conserva los paths, genera
+URLs firmadas de corta duración al subir y las renueva desde el Worker mediante
+una server function que solo acepta archivos ya publicados en esas tablas.
+Configura `SUPABASE_SERVICE_ROLE_KEY` únicamente como secreto server-side para
+que esa renovación funcione en el deployment independiente.
 Los retratos del Hero ya son locales y no requieren Storage.
 
 ## 3. Variables de entorno

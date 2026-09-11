@@ -1,6 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { refreshStorageUrls } from "@/lib/storage.functions";
 
 export type TimelineItem = Database["public"]["Tables"]["timeline_items"]["Row"];
 export type TimelineKind = Database["public"]["Enums"]["timeline_kind"];
@@ -76,7 +77,7 @@ export const projectsQuery = queryOptions({
   queryFn: async (): Promise<ProjectRow[]> => {
     const { data, error } = await supabase.from("projects").select("*").order("sort_order", { ascending: true });
     if (error) throw error;
-    return data ?? [];
+    return refreshProjectStorageUrls(data ?? []);
   },
 });
 
@@ -119,6 +120,44 @@ export function readAttachments(raw: unknown): TimelineAttachment[] {
   );
 }
 
+async function getRefreshedUrls(
+  bucket: "cv-attachments" | "cv-projects",
+  paths: string[],
+): Promise<Record<string, string>> {
+  if (!paths.length) return {};
+  try {
+    const result = await refreshStorageUrls({ data: { bucket, paths } });
+    return result.urls;
+  } catch {
+    // Keep legacy URLs working while the independent Worker is being configured.
+    return {};
+  }
+}
+
+async function refreshProjectStorageUrls(rows: ProjectRow[]): Promise<ProjectRow[]> {
+  const galleries = rows.map((row) => readGallery(row.gallery));
+  const paths = galleries.flatMap((gallery) => gallery.map((item) => item.path).filter(Boolean));
+  const urls = await getRefreshedUrls("cv-projects", paths);
+  if (!Object.keys(urls).length) return rows;
+
+  return rows.map((row, index) => ({
+    ...row,
+    gallery: galleries[index].map((item) => ({ ...item, url: urls[item.path] ?? item.url })) as unknown as ProjectRow["gallery"],
+  }));
+}
+
+async function refreshTimelineStorageUrls(rows: TimelineItem[]): Promise<TimelineItem[]> {
+  const attachments = rows.map((row) => readAttachments(row.attachments));
+  const paths = attachments.flatMap((items) => items.map((item) => item.path));
+  const urls = await getRefreshedUrls("cv-attachments", paths);
+  if (!Object.keys(urls).length) return rows;
+
+  return rows.map((row, index) => ({
+    ...row,
+    attachments: attachments[index].map((item) => ({ ...item, url: urls[item.path] ?? item.url })) as unknown as TimelineItem["attachments"],
+  }));
+}
+
 export const timelineQuery = queryOptions({
   queryKey: ["timeline_items"],
   queryFn: async (): Promise<TimelineItem[]> => {
@@ -127,6 +166,6 @@ export const timelineQuery = queryOptions({
       .select("*")
       .order("sort_order", { ascending: false });
     if (error) throw error;
-    return data ?? [];
+    return refreshTimelineStorageUrls(data ?? []);
   },
 });

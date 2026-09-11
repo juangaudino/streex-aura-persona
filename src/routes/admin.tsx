@@ -451,7 +451,7 @@ function TextArea({
   );
 }
 
-const SIGNED_URL_TTL = 60 * 60 * 24 * 365 * 10; // 10 years
+const SIGNED_URL_TTL = 60 * 60; // 1 hour; public queries renew URLs server-side
 
 function isImage(type: string) {
   return type.startsWith("image/");
