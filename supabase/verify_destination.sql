@@ -83,18 +83,29 @@ WHERE (schemaname = 'public' AND tablename IN (
 OR (schemaname = 'storage' AND tablename = 'objects')
 ORDER BY schemaname, tablename, policyname;
 
--- SECURITY DEFINER functions must not remain executable by PUBLIC.
+-- SECURITY DEFINER helpers must stay outside the exposed public schema and
+-- must not be executable by PUBLIC or anon.
 SELECT
+  n.nspname AS schema_name,
   p.proname AS function_name,
   pg_get_function_identity_arguments(p.oid) AS identity_arguments,
   p.prosecdef AS security_definer,
   has_function_privilege('public', p.oid, 'EXECUTE') AS public_can_execute,
+  has_function_privilege('anon', p.oid, 'EXECUTE') AS anon_can_execute,
   has_function_privilege('authenticated', p.oid, 'EXECUTE') AS authenticated_can_execute
 FROM pg_proc AS p
 JOIN pg_namespace AS n ON n.oid = p.pronamespace
-WHERE n.nspname = 'public'
-  AND p.proname IN ('has_role', 'tg_set_updated_at')
-ORDER BY p.proname;
+WHERE (n.nspname = 'private' AND p.proname = 'has_role')
+   OR (n.nspname = 'public' AND p.proname = 'tg_set_updated_at')
+ORDER BY n.nspname, p.proname;
+
+SELECT NOT EXISTS (
+  SELECT 1
+  FROM pg_proc AS p
+  JOIN pg_namespace AS n ON n.oid = p.pronamespace
+  WHERE n.nspname = 'public'
+    AND p.proname = 'has_role'
+) AS public_has_role_removed;
 
 -- The insecure first-admin claim must not remain available on the destination.
 SELECT NOT EXISTS (

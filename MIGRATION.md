@@ -38,14 +38,18 @@ Worker propio.
    buckets privados, restringe Storage al rol admin, elimina el claim público
    de admin, impone 25 MiB y MIME permitidos en cada bucket, y limita el
    `EXECUTE` de las funciones `SECURITY DEFINER`.
-5. Configura Auth → Providers con Email y Google. En Google Cloud Console
+5. La migración `20260911023126_harden_private_role_check.sql` mueve el helper
+   `has_role` al esquema privado, elimina su endpoint implícito en el API
+   público y ajusta las políticas RLS para evaluar auth y roles una vez por
+   sentencia.
+6. Configura Auth → Providers con Email y Google. En Google Cloud Console
    registra el callback que indique Supabase y las URLs de redirección de cada
    entorno.
-6. Crea o confirma la cuenta del propietario y asígnale el rol admin mediante
+7. Crea o confirma la cuenta del propietario y asígnale el rol admin mediante
    una inserción controlada en `user_roles`; puedes partir de
    `supabase/bootstrap_admin.sql.example` (el repositorio ya no expone
    `claim_admin()`).
-7. Ejecuta `supabase/verify_destination.sql` en el SQL Editor del destino y
+8. Ejecuta `supabase/verify_destination.sql` en el SQL Editor del destino y
    revisa que las tablas, RLS, buckets privados, límites de Storage y permisos
    de funciones coincidan con el modelo esperado.
 
@@ -156,7 +160,8 @@ el modelo de ejecución; no se debe inferir compatibilidad de un build verde.
 - [x] Migraciones locales presentes y Storage documentado.
 - [x] Lint, tests unitarios y validaciones de build documentados y ejecutados en CI.
 - [ ] Crear y seleccionar el proyecto Supabase destino.
-- [ ] Aplicar migraciones al destino y verificar RLS/Storage.
+- [x] Aplicar migraciones al destino y verificar RLS/Storage base.
+- [ ] Confirmar en el destino el gate de asesores de seguridad y rendimiento.
 - [ ] Migrar y validar datos reales.
 - [ ] Configurar Google OAuth y el dominio final.
 - [ ] Publicar el Worker propio y hacer QA autenticado.

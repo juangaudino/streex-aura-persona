@@ -216,8 +216,14 @@ grant all on public.user_roles to service_role;
 -- 5. Funciones (antes de las políticas que las usan)
 -- ----------------------------------------------------------------------------
 
+-- Las funciones SECURITY DEFINER internas viven fuera del esquema expuesto.
+create schema if not exists private;
+revoke all on schema private from public;
+revoke all on schema private from anon;
+grant usage on schema private to authenticated;
+
 -- Verifica si un usuario tiene un rol. SECURITY DEFINER evita recursión en RLS.
-create or replace function public.has_role(_user_id uuid, _role public.app_role)
+create or replace function private.has_role(_user_id uuid, _role public.app_role)
 returns boolean
 language sql
 stable
@@ -242,8 +248,9 @@ end;
 $$;
 
 -- SECURITY DEFINER functions are explicit internal APIs, not public endpoints.
-revoke all on function public.has_role(uuid, public.app_role) from public;
-grant execute on function public.has_role(uuid, public.app_role) to authenticated;
+revoke all on function private.has_role(uuid, public.app_role) from public;
+revoke all on function private.has_role(uuid, public.app_role) from anon;
+grant execute on function private.has_role(uuid, public.app_role) to authenticated;
 revoke all on function public.tg_set_updated_at() from public;
 
 -- ----------------------------------------------------------------------------
@@ -262,44 +269,44 @@ create policy "Public read profile" on public.profile_settings
   for select to anon, authenticated using (true);
 create policy "Admins write profile" on public.profile_settings
   for all to authenticated
-  using (public.has_role(auth.uid(), 'admin'))
-  with check (public.has_role(auth.uid(), 'admin'));
+  using ((select private.has_role((select auth.uid()), 'admin'::public.app_role)))
+  with check ((select private.has_role((select auth.uid()), 'admin'::public.app_role)));
 
 -- timeline_items
 create policy "Public read timeline" on public.timeline_items
   for select to anon, authenticated using (true);
 create policy "Admins write timeline" on public.timeline_items
   for all to authenticated
-  using (public.has_role(auth.uid(), 'admin'))
-  with check (public.has_role(auth.uid(), 'admin'));
+  using ((select private.has_role((select auth.uid()), 'admin'::public.app_role)))
+  with check ((select private.has_role((select auth.uid()), 'admin'::public.app_role)));
 
 -- projects
 create policy "Public read projects" on public.projects
   for select to anon, authenticated using (true);
 create policy "Admins write projects" on public.projects
   for all to authenticated
-  using (public.has_role(auth.uid(), 'admin'))
-  with check (public.has_role(auth.uid(), 'admin'));
+  using ((select private.has_role((select auth.uid()), 'admin'::public.app_role)))
+  with check ((select private.has_role((select auth.uid()), 'admin'::public.app_role)));
 
 -- skills
 create policy "Public read skills" on public.skills
   for select to anon, authenticated using (true);
 create policy "Admins write skills" on public.skills
   for all to authenticated
-  using (public.has_role(auth.uid(), 'admin'))
-  with check (public.has_role(auth.uid(), 'admin'));
+  using ((select private.has_role((select auth.uid()), 'admin'::public.app_role)))
+  with check ((select private.has_role((select auth.uid()), 'admin'::public.app_role)));
 
 -- markets
 create policy "Public read markets" on public.markets
   for select to anon, authenticated using (true);
 create policy "Admins write markets" on public.markets
   for all to authenticated
-  using (public.has_role(auth.uid(), 'admin'))
-  with check (public.has_role(auth.uid(), 'admin'));
+  using ((select private.has_role((select auth.uid()), 'admin'::public.app_role)))
+  with check ((select private.has_role((select auth.uid()), 'admin'::public.app_role)));
 
 -- user_roles: el usuario solo lee sus propios roles
 create policy "Users read own roles" on public.user_roles
-  for select to authenticated using (auth.uid() = user_id);
+  for select to authenticated using ((select auth.uid()) = user_id);
 
 -- ----------------------------------------------------------------------------
 -- 6. Triggers updated_at
@@ -333,32 +340,32 @@ create policy "Admins read CV storage" on storage.objects
   for select to authenticated
   using (
     bucket_id in ('cv-attachments', 'cv-projects')
-    and public.has_role(auth.uid(), 'admin')
+    and (select private.has_role((select auth.uid()), 'admin'::public.app_role))
   );
 
 create policy "Admins insert CV storage" on storage.objects
   for insert to authenticated
   with check (
     bucket_id in ('cv-attachments', 'cv-projects')
-    and public.has_role(auth.uid(), 'admin')
+    and (select private.has_role((select auth.uid()), 'admin'::public.app_role))
   );
 
 create policy "Admins update CV storage" on storage.objects
   for update to authenticated
   using (
     bucket_id in ('cv-attachments', 'cv-projects')
-    and public.has_role(auth.uid(), 'admin')
+    and (select private.has_role((select auth.uid()), 'admin'::public.app_role))
   )
   with check (
     bucket_id in ('cv-attachments', 'cv-projects')
-    and public.has_role(auth.uid(), 'admin')
+    and (select private.has_role((select auth.uid()), 'admin'::public.app_role))
   );
 
 create policy "Admins delete CV storage" on storage.objects
   for delete to authenticated
   using (
     bucket_id in ('cv-attachments', 'cv-projects')
-    and public.has_role(auth.uid(), 'admin')
+    and (select private.has_role((select auth.uid()), 'admin'::public.app_role))
   );
 
 -- ----------------------------------------------------------------------------
