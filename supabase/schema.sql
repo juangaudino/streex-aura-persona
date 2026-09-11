@@ -9,7 +9,7 @@
 --      user_roles
 --   3. Grants (PostgREST no otorga permisos por defecto)
 --   4. RLS: lectura pública, escritura solo admin
---   5. Funciones: has_role(), claim_admin(), tg_set_updated_at()
+--   5. Funciones: has_role(), tg_set_updated_at()
 --   6. Triggers updated_at
 --   7. Storage: buckets cv-attachments y cv-projects + políticas
 -- ============================================================================
@@ -230,30 +230,6 @@ as $$
   )
 $$;
 
--- La primera cuenta creada reclama el rol admin (solo si aún no hay admins).
-create or replace function public.claim_admin()
-returns boolean
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  _uid uuid := auth.uid();
-  _inserted integer;
-begin
-  if _uid is null then
-    return false;
-  end if;
-
-  insert into public.user_roles (user_id, role)
-  values (_uid, 'admin')
-  on conflict do nothing;
-
-  get diagnostics _inserted = row_count;
-  return _inserted = 1;
-end;
-$$;
-
 create or replace function public.tg_set_updated_at()
 returns trigger
 language plpgsql
@@ -268,8 +244,6 @@ $$;
 -- SECURITY DEFINER functions are explicit internal APIs, not public endpoints.
 revoke all on function public.has_role(uuid, public.app_role) from public;
 grant execute on function public.has_role(uuid, public.app_role) to authenticated;
-revoke all on function public.claim_admin() from public;
-grant execute on function public.claim_admin() to authenticated;
 revoke all on function public.tg_set_updated_at() from public;
 
 -- ----------------------------------------------------------------------------

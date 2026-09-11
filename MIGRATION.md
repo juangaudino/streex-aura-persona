@@ -35,13 +35,14 @@ Worker propio.
 3. Para un proyecto nuevo, aplica las migraciones de
    `supabase/migrations/` en orden o usa `supabase/schema.sql` como baseline.
 4. La migración `20260911003221_harden_storage_and_admin_claim.sql` crea los
-   buckets privados, restringe Storage al rol admin, hace atómico el primer
-   claim de admin y limita el `EXECUTE` de las funciones `SECURITY DEFINER`.
+   buckets privados, restringe Storage al rol admin, elimina el claim público
+   de admin y limita el `EXECUTE` de las funciones `SECURITY DEFINER`.
 5. Configura Auth → Providers con Email y Google. En Google Cloud Console
    registra el callback que indique Supabase y las URLs de redirección de cada
    entorno.
-6. Registra una cuenta desde `/auth` y asígnale el primer rol admin mediante
-   `claim_admin()` o una inserción controlada en `user_roles`.
+6. Crea o confirma la cuenta del propietario y asígnale el rol admin mediante
+   una inserción controlada en `user_roles` (el repositorio ya no expone
+   `claim_admin()`).
 
 El proyecto Supabase actualmente configurado durante la auditoría respondió
 correctamente a REST, pero los buckets `cv-attachments` y `cv-projects` no

@@ -3,35 +3,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS user_roles_one_admin_idx
   ON public.user_roles (role)
   WHERE role = 'admin';
 
-CREATE OR REPLACE FUNCTION public.claim_admin()
-RETURNS BOOLEAN
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  _uid UUID := auth.uid();
-  _inserted INTEGER;
-BEGIN
-  IF _uid IS NULL THEN
-    RETURN FALSE;
-  END IF;
-
-  INSERT INTO public.user_roles (user_id, role)
-  VALUES (_uid, 'admin')
-  ON CONFLICT DO NOTHING;
-
-  GET DIAGNOSTICS _inserted = ROW_COUNT;
-  RETURN _inserted = 1;
-END;
-$$;
-
 -- SECURITY DEFINER functions are explicit internal APIs, not public endpoints.
 REVOKE ALL ON FUNCTION public.has_role(UUID, public.app_role) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.has_role(UUID, public.app_role) TO authenticated;
-REVOKE ALL ON FUNCTION public.claim_admin() FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.claim_admin() TO authenticated;
 REVOKE ALL ON FUNCTION public.tg_set_updated_at() FROM PUBLIC;
+DROP FUNCTION IF EXISTS public.claim_admin();
 
 -- The application uses signed URLs, so the buckets must remain private.
 INSERT INTO storage.buckets (id, name, public)

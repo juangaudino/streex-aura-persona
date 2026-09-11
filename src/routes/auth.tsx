@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { motion } from "motion/react";
-import { ArrowLeft, LogIn, UserPlus } from "lucide-react";
+import { ArrowLeft, LogIn } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({ meta: [{ title: "Admin · Login" }] }),
@@ -13,7 +13,6 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const nav = useNavigate();
   const { user, loading } = useAuth();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -30,20 +29,9 @@ function AuthPage() {
     setNotice(null);
     setBusy(true);
     try {
-      if (mode === "signup") {
-        const redirectTo = `${window.location.origin}/admin`;
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: redirectTo },
-        });
-        if (error) throw error;
-        setNotice("Cuenta creada. Revisa tu email para confirmar (o ingresa si la confirmación está desactivada).");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        nav({ to: "/admin" });
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      nav({ to: "/admin" });
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Error");
     } finally {
@@ -73,7 +61,7 @@ function AuthPage() {
         className="w-full max-w-sm"
       >
         <p className="text-eyebrow mb-3">Panel</p>
-        <h1 className="text-display text-3xl">{mode === "signin" ? "Iniciar sesión" : "Crear cuenta"}</h1>
+        <h1 className="text-display text-3xl">Iniciar sesión</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Acceso restringido al administrador del sitio.
         </p>
@@ -117,20 +105,17 @@ function AuthPage() {
             disabled={busy}
             className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 py-3 text-sm font-medium text-background transition-transform hover:scale-[1.01] disabled:opacity-50"
           >
-            {mode === "signin" ? <LogIn className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-            {mode === "signin" ? "Entrar" : "Crear cuenta"}
+            <LogIn className="h-4 w-4" />
+            Entrar
           </button>
 
           {err && <p className="text-sm text-destructive">{err}</p>}
           {notice && <p className="text-sm text-muted-foreground">{notice}</p>}
         </form>
 
-        <button
-          onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-          className="mt-6 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-        >
-          {mode === "signin" ? "¿No tienes cuenta? Regístrate" : "¿Ya tienes cuenta? Entrar"}
-        </button>
+        <p className="mt-6 text-xs text-muted-foreground">
+          Las cuentas se crean y autorizan de forma controlada por el propietario.
+        </p>
       </motion.div>
     </main>
   );

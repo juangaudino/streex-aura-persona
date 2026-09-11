@@ -18,8 +18,6 @@ const ease = [0.16, 1, 0.3, 1] as const;
 function AdminPage() {
   const nav = useNavigate();
   const { user, isAdmin, loading } = useAuth();
-  const [claiming, setClaiming] = useState(false);
-  const [claimErr, setClaimErr] = useState<string | null>(null);
   const qc = useQueryClient();
 
   useEffect(() => {
@@ -42,30 +40,8 @@ function AdminPage() {
             Esta cuenta ({user.email}) no tiene rol de admin.
           </p>
           <p className="mt-4 text-xs text-muted-foreground">
-            Si eres el dueño del sitio y aún no hay ningún admin registrado, puedes reclamar el rol ahora.
+            El rol admin debe ser asignado manualmente por el propietario en Supabase.
           </p>
-          <button
-            disabled={claiming}
-            onClick={async () => {
-              setClaiming(true);
-              setClaimErr(null);
-              const { data, error } = await supabase.rpc("claim_admin");
-              setClaiming(false);
-              if (error) {
-                setClaimErr(error.message);
-                return;
-              }
-              if (data === true) {
-                window.location.reload();
-              } else {
-                setClaimErr("Ya existe un admin. Contacta al dueño del sitio.");
-              }
-            }}
-            className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background disabled:opacity-50"
-          >
-            Reclamar rol de admin
-          </button>
-          {claimErr && <p className="mt-3 text-sm text-destructive">{claimErr}</p>}
           <div className="mt-6 flex justify-center gap-3">
             <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">Volver al sitio</Link>
             <button
