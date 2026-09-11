@@ -1,30 +1,55 @@
 # Aura Persona
 
-Quiero crear un website para mi CV / Resume profesional. 
+Portfolio profesional y CV bilingüe de Juan Gaudino. Presenta experiencia,
+proyectos, skills, mercados y recorrido profesional en una experiencia visual
+minimalista con animaciones e interacción.
 
-Quiero algo al estilo Apple, minimalista, muy sobrio. Pero que a la vez tenga animaciones premium, algo de interactividad. Movimiento, flow. 
+## Qué incluye
 
-una forma muy especial y espectacular de presentarme
+- Contenido en español e inglés con cambio de idioma.
+- Tema claro/oscuro y layout responsive.
+- Secciones animadas de presentación, experiencia, proyectos, skills y journey.
+- Case studies con métricas y galerías.
+- Panel privado de edición en `/admin` protegido por Supabase Auth y el rol
+  `admin`.
+- Fallback de contenido estático para que la página pueda renderizar mientras
+  carga el contenido público de Supabase.
 
-This project was built with [Lovable](https://lovable.dev).
+## Stack
 
-**Live app**: https://professional-motion-story.lovable.app
+- React 19, TanStack Start/Router y Vite 8.
+- Tailwind CSS, Motion y componentes Radix UI.
+- Supabase para Auth, Postgres y Storage.
+- Cloudflare Workers como destino de hosting configurado.
 
-## Build with Lovable
+## Desarrollo local
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/4afd92e5-8292-49be-b882-109617f84bf5).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+Requiere Node.js 22.12+ y npm.
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+git clone https://github.com/juangaudino/streex-aura-persona.git
+cd streex-aura-persona
+cp .env.example .env
+npm ci
 npm run dev
 ```
+
+Comandos de validación:
+
+```sh
+npm run test
+npm run typecheck
+npm run build
+npx wrangler deploy --dry-run
+```
+
+## Configuración y migración
+
+Usa `.env.example` como plantilla y nunca versiona `.env` ni claves secretas.
+La guía [`MIGRATION.md`](MIGRATION.md) documenta la migración de datos,
+Storage, Auth y el despliegue independiente.
+
+El dominio `https://professional-motion-story.lovable.app` pertenece al
+deployment heredado y se conserva únicamente como referencia histórica. El
+Worker y el proyecto Supabase destino todavía deben configurarse antes de
+publicar una versión independiente.
