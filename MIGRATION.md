@@ -122,6 +122,19 @@ npm run deploy
 
 Antes del primer deploy configura las variables en el entorno del Worker,
 confirma el nombre del Worker en `wrangler.jsonc` y decide el dominio público.
+`wrangler.jsonc` declara como obligatorias `SUPABASE_URL`,
+`SUPABASE_PUBLISHABLE_KEY` y `SUPABASE_SERVICE_ROLE_KEY`; almacénalas como
+secrets del Worker antes de desplegar:
+
+```bash
+npx wrangler secret put SUPABASE_URL
+npx wrangler secret put SUPABASE_PUBLISHABLE_KEY
+npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+```
+
+Wrangler valida esos nombres durante el deploy, y el valor de
+`SUPABASE_SERVICE_ROLE_KEY` nunca debe entrar en `vars`, el bundle cliente o
+el repositorio.
 La cuenta local debe estar autenticada con `npx wrangler login`; un
 `wrangler deploy --temporary` solo crea un preview y no sustituye el Worker
 propio.
