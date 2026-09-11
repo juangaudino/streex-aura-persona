@@ -1,76 +1,45 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { AppProvider } from "@/hooks/use-theme";
-import { useSmoothScroll } from "@/hooks/use-smooth-scroll";
-import { Nav } from "@/components/cv/Nav";
-import { Hero } from "@/components/cv/Hero";
-import { About } from "@/components/cv/About";
-import { Experience } from "@/components/cv/Experience";
-import { Journey } from "@/components/cv/Journey";
-
-import { Projects } from "@/components/cv/Projects";
-import { Skills } from "@/components/cv/Skills";
-import { Contact } from "@/components/cv/Contact";
-import { Footer } from "@/components/cv/Footer";
-import { NoiseOverlay } from "@/components/cv/NoiseOverlay";
-import { ScrollIndicator } from "@/components/cv/ScrollIndicator";
-import { CityBokeh } from "@/components/cv/CityBokeh";
-import { DoohTicker } from "@/components/cv/DoohTicker";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Juan Gaudino — Media Planner & OOH/DOOH Strategist" },
+      { title: "Tu CV Digital · Streex Aura Persona" },
       {
         name: "description",
         content:
-          "Media planner with 15+ years of experience leading OOH and DOOH campaigns across LATAM. Now based in Salt Lake City, expanding into programmatic and digital analytics for the U.S. market.",
+          "Tu CV Digital: perfiles profesionales privados, presentables y fáciles de compartir.",
       },
-      { property: "og:title", content: "Juan Gaudino — Media Planner & OOH/DOOH Strategist" },
+      { property: "og:title", content: "Tu CV Digital · Streex Aura Persona" },
       {
         property: "og:description",
-        content: "15+ years planning OOH/DOOH campaigns across LATAM. Based in Salt Lake City, UT.",
+        content: "Una forma más clara de presentar tu trayectoria profesional.",
       },
     ],
   }),
-  component: Index,
+  component: Landing,
 });
 
-function Index() {
+function Landing() {
   return (
-    <AppProvider>
-      <Page />
-    </AppProvider>
-  );
-}
-
-const TICKER_ITEMS = [
-  "IMPRESSIONS · 2.4B+",
-  "MARKETS · 7",
-  "CAMPAIGNS · 120+",
-  "YEARS · 15+",
-  "OOH · DOOH · PROGRAMMATIC",
-  "LATAM → U.S.",
-];
-
-function Page() {
-  useSmoothScroll();
-  return (
-    <main className="relative min-h-screen bg-background text-foreground">
-      <CityBokeh />
-      <Nav />
-      <Hero />
-      <DoohTicker items={TICKER_ITEMS} />
-      <About />
-      <Experience />
-      <Journey />
-
-      <Projects />
-      <Skills />
-      <Contact />
-      <DoohTicker items={TICKER_ITEMS} speed={55} />
-      <Footer />
-      <NoiseOverlay opacity={0.035} />
-      <ScrollIndicator />
+    <main className="flex min-h-screen items-center justify-center bg-background px-6 text-foreground">
+      <section className="w-full max-w-3xl py-24">
+        <p className="text-eyebrow mb-6">STREEX AURA PERSONA</p>
+        <h1 className="text-display max-w-2xl text-6xl leading-[0.95] md:text-8xl">
+          Tu CV Digital.
+        </h1>
+        <p className="mt-8 max-w-xl text-lg leading-relaxed text-muted-foreground md:text-xl">
+          Perfiles profesionales claros, privados y fáciles de compartir. Cada trayectoria tiene su
+          propio espacio, identidad y enlace de acceso.
+        </p>
+        <div className="mt-10 flex flex-wrap gap-3">
+          <Link
+            to="/auth"
+            className="rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-opacity hover:opacity-80"
+          >
+            Acceso propietario
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }

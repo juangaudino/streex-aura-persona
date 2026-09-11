@@ -6,19 +6,23 @@ SELECT
   expected.table_name,
   actual.table_name IS NOT NULL AS exists_in_destination
 FROM (VALUES
+  ('profiles'),
   ('profile_settings'),
   ('timeline_items'),
   ('projects'),
   ('skills'),
   ('markets'),
-  ('user_roles')
+  ('user_roles'),
+  ('profile_access_links')
 ) AS expected(table_name)
 LEFT JOIN information_schema.tables AS actual
   ON actual.table_schema = 'public'
  AND actual.table_name = expected.table_name
 ORDER BY expected.table_name;
 
-SELECT 'profile_settings' AS table_name, count(*) AS row_count FROM public.profile_settings
+SELECT 'profiles' AS table_name, count(*) AS row_count FROM public.profiles
+UNION ALL
+SELECT 'profile_settings', count(*) FROM public.profile_settings
 UNION ALL
 SELECT 'timeline_items', count(*) FROM public.timeline_items
 UNION ALL
@@ -29,6 +33,10 @@ UNION ALL
 SELECT 'markets', count(*) FROM public.markets
 UNION ALL
 SELECT 'user_roles', count(*) FROM public.user_roles;
+-- Tokens should normally be created by the Worker and remain inaccessible to
+-- both browser roles.
+SELECT 'profile_access_links' AS table_name, count(*) AS row_count
+FROM public.profile_access_links;
 
 -- Storage must be private, limited to 25 MiB, and MIME-restricted.
 SELECT
@@ -54,11 +62,13 @@ JOIN pg_namespace AS n ON n.oid = c.relnamespace
 WHERE n.nspname = 'public'
   AND c.relname IN (
     'profile_settings',
+    'profiles',
     'timeline_items',
     'projects',
     'skills',
     'markets',
-    'user_roles'
+    'user_roles',
+    'profile_access_links'
   )
 ORDER BY c.relname;
 

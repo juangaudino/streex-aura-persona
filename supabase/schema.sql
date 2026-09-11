@@ -222,16 +222,16 @@ create unique index user_roles_one_admin_idx
 -- ----------------------------------------------------------------------------
 -- 3. Grants (obligatorios: Supabase no los otorga por defecto)
 -- ----------------------------------------------------------------------------
-grant select on public.profile_settings to anon, authenticated;
+grant select on public.profile_settings to authenticated;
 grant select, insert, update, delete on public.profile_settings to authenticated;
 grant select, insert, update, delete on public.profiles to authenticated;
-grant select on public.timeline_items to anon, authenticated;
+grant select on public.timeline_items to authenticated;
 grant select, insert, update, delete on public.timeline_items to authenticated;
-grant select on public.projects to anon, authenticated;
+grant select on public.projects to authenticated;
 grant select, insert, update, delete on public.projects to authenticated;
-grant select on public.skills to anon, authenticated;
+grant select on public.skills to authenticated;
 grant select, insert, update, delete on public.skills to authenticated;
-grant select on public.markets to anon, authenticated;
+grant select on public.markets to authenticated;
 grant select, insert, update, delete on public.markets to authenticated;
 grant select on public.user_roles to authenticated;
 
@@ -286,7 +286,7 @@ grant execute on function private.has_role(uuid, public.app_role) to authenticat
 revoke all on function public.tg_set_updated_at() from public;
 
 -- ----------------------------------------------------------------------------
--- 4. RLS — lectura pública, escritura solo admin
+-- 4. RLS — contenido privado, escritura solo admin
 -- ----------------------------------------------------------------------------
 
 alter table public.profile_settings enable row level security;
@@ -317,41 +317,28 @@ create policy "No direct access to profile links" on public.profile_access_links
   using (false)
   with check (false);
 
--- profile_settings
-create policy "Public read profile" on public.profile_settings
-  for select to anon, authenticated using (true);
+-- profile_settings: los perfiles se entregan mediante el Worker tras validar
+-- un enlace compartible; solo el propietario admin lee/escribe por API.
 create policy "Admins write profile" on public.profile_settings
   for all to authenticated
   using ((select private.has_role((select auth.uid()), 'admin'::public.app_role)))
   with check ((select private.has_role((select auth.uid()), 'admin'::public.app_role)));
 
--- timeline_items
-create policy "Public read timeline" on public.timeline_items
-  for select to anon, authenticated using (true);
 create policy "Admins write timeline" on public.timeline_items
   for all to authenticated
   using ((select private.has_role((select auth.uid()), 'admin'::public.app_role)))
   with check ((select private.has_role((select auth.uid()), 'admin'::public.app_role)));
 
--- projects
-create policy "Public read projects" on public.projects
-  for select to anon, authenticated using (true);
 create policy "Admins write projects" on public.projects
   for all to authenticated
   using ((select private.has_role((select auth.uid()), 'admin'::public.app_role)))
   with check ((select private.has_role((select auth.uid()), 'admin'::public.app_role)));
 
--- skills
-create policy "Public read skills" on public.skills
-  for select to anon, authenticated using (true);
 create policy "Admins write skills" on public.skills
   for all to authenticated
   using ((select private.has_role((select auth.uid()), 'admin'::public.app_role)))
   with check ((select private.has_role((select auth.uid()), 'admin'::public.app_role)));
 
--- markets
-create policy "Public read markets" on public.markets
-  for select to anon, authenticated using (true);
 create policy "Admins write markets" on public.markets
   for all to authenticated
   using ((select private.has_role((select auth.uid()), 'admin'::public.app_role)))

@@ -12,8 +12,8 @@ La capa de aplicación ya no depende del runtime de Lovable:
 - Vite usa los plugins públicos de TanStack Start, Cloudflare, React y Tailwind.
 - `wrangler.jsonc` define el Worker y `src/server.ts` es su entrypoint.
 - Auth usa directamente `supabase.auth` para email/password y Google.
-- Los retratos del Hero viven en `public/juan-light.png` y
-  `public/juan-dark.png`; no dependen de `/__l5e`.
+- Los retratos y el PDF viven en el bucket privado `cv-attachments`; el Worker
+  solo devuelve URLs firmadas después de validar el enlace del perfil.
 - `@lovable.dev/cloud-auth-js`, el bridge de preview y el error reporting de
   Lovable fueron eliminados.
 - `.env` ya no está versionado. Usa `.env.example` como plantilla.
@@ -24,9 +24,9 @@ existiendo como referencia, pero el Worker independiente ya está publicado en
 el dominio propio de la aplicación.
 
 El destino Supabase independiente ya creado y verificado es
-`streex-aura-persona` (`ynbpclhwshbilbdnerdu`, región `us-west-2`). Sus ocho
+`streex-aura-persona` (`ynbpclhwshbilbdnerdu`, región `us-west-2`). Sus 14
 migraciones registradas incluyen el esquema, Storage privado, el helper RLS
-privado y la fila singleton inicial de `profile_settings`. Los asesores
+privado, el modelo multi-perfil y la fila inicial de `profile_settings`. Los asesores
 de base de datos no reportan hallazgos; el asesor de Auth sí indica que la
 protección contra contraseñas filtradas todavía está desactivada y debe
 activarse desde el Dashboard.
@@ -34,13 +34,13 @@ activarse desde el Dashboard.
 La siguiente capa ya está aplicada en el destino: existe el perfil base
 `juanooh`, cada tabla de contenido tiene una relación `profile_id` y
 `profile_access_links` almacena únicamente hashes de enlaces compartibles. La
-lectura pública antigua se mantiene temporalmente durante la transición; el
-bloqueo de perfiles privados se desplegará junto con las rutas y funciones del
-Worker para evitar una ventana en la que el frontend no pueda cargar el CV.
+lectura pública antigua ya fue retirada: el REST API no concede `SELECT` a
+`anon` y las rutas del perfil solo reciben datos mediante el Worker y una
+cookie HttpOnly emitida por un enlace privado válido.
 
 La historia de migraciones también fue reconciliada: las versiones que el
 aplicador remoto había registrado con timestamps nuevos se marcaron como
-equivalentes a los ocho archivos versionados en Git. `supabase migration list`
+equivalentes a los 14 archivos versionados en Git. `supabase migration list`
 queda alineado y `supabase db push --dry-run` confirma que no hay migraciones
 pendientes. No se ejecutó un reset remoto ni se modificó contenido existente.
 
@@ -116,10 +116,12 @@ Los archivos administrables usan dos buckets privados:
 Las URLs guardadas en `attachments` y `gallery` son valores de compatibilidad y
 no deben copiarse como si fueran permanentes. La app conserva los paths, genera
 URLs firmadas de corta duración al subir y las renueva desde el Worker mediante
-una server function que solo acepta archivos ya publicados en esas tablas.
+una server function que exige la cookie privada del perfil y solo acepta
+archivos ya publicados en sus tablas.
 Configura `SUPABASE_SERVICE_ROLE_KEY` únicamente como secreto server-side para
 que esa renovación funcione en el deployment independiente.
-Los retratos del Hero ya son locales y no requieren Storage.
+Los retratos y el PDF de `juanooh` están en `cv-attachments/profile/juanooh/`.
+El bucket es privado; no se deben volver a colocar estos archivos en `public/`.
 
 ## 3. Variables de entorno
 
@@ -192,7 +194,7 @@ el modelo de ejecución; no se debe inferir compatibilidad de un build verde.
 
 - [x] Build independiente de la configuración Vite de Lovable.
 - [x] Auth independiente de `cloud-auth-js`.
-- [x] Retratos principales servidos desde el repositorio.
+- [x] Retratos y PDF migrados a Storage privado con URLs firmadas.
 - [x] `.env` fuera del control de versiones.
 - [x] Migraciones locales presentes y Storage documentado.
 - [x] Lint, tests unitarios y validaciones de build documentados y ejecutados en CI.
@@ -203,13 +205,12 @@ el modelo de ejecución; no se debe inferir compatibilidad de un build verde.
 - [x] Crear el modelo multi-perfil y el perfil inicial `juanooh`.
 - [x] Crear la cuenta propietaria en Auth y asignarle `admin`.
 - [ ] Configurar Google OAuth y las URLs finales de redirección.
-- [ ] Crear la landing pública en `/` y rutas por perfil.
-- [ ] Implementar enlaces privados revocables sin login.
-- [ ] Cerrar lectura pública de contenido mediante RLS/Worker.
-- [ ] Migrar y validar los datos/contenidos reales del proyecto heredado.
+- [x] Crear la landing pública en `/` y rutas por perfil.
+- [x] Implementar enlaces privados revocables sin login.
+- [x] Cerrar lectura pública de contenido mediante RLS/Worker.
+- [x] Migrar y validar los datos/contenidos iniciales de `juanooh`.
 - [ ] Ejecutar QA autenticado del panel Admin y de la gestión de Storage.
 - [x] Confirmar en el destino el gate de asesores de seguridad y rendimiento.
-- [ ] Migrar y validar datos reales.
 - [ ] Configurar Google OAuth.
 - [x] Configurar el dominio final y publicar el Worker propio.
 - [ ] Hacer QA autenticado.

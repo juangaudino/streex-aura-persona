@@ -4,12 +4,30 @@ import { Link } from "@tanstack/react-router";
 import { Moon, Sun, Download, Lock } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
 import { useAuth } from "@/hooks/use-auth";
-import { dict } from "@/i18n/dictionary";
+import { useProfileData } from "@/lib/profile-data-context";
 
 export function Nav() {
   const { theme, toggleTheme, lang, toggleLang } = useApp();
   const { isAdmin } = useAuth();
-  const t = dict[lang].nav;
+  const { settings } = useProfileData();
+  const t =
+    lang === "es"
+      ? {
+          about: "Sobre mí",
+          experience: "Experiencia",
+          projects: "Proyectos",
+          contact: "Contacto",
+          admin: "Admin",
+          download: "Descargar CV",
+        }
+      : {
+          about: "About",
+          experience: "Experience",
+          projects: "Projects",
+          contact: "Contact",
+          admin: "Admin",
+          download: "Download CV",
+        };
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -79,8 +97,8 @@ export function Nav() {
             </Link>
           )}
           <a
-            href="/cv.pdf"
-            download
+            href={settings.cv_url || "#contact"}
+            download={Boolean(settings.cv_url)}
             className="ml-1 hidden items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-xs font-medium text-background transition-transform hover:scale-[1.03] sm:flex"
           >
             <Download className="h-3.5 w-3.5" />

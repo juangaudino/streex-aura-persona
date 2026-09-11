@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState } from "react";
 import { motion, useInView } from "motion/react";
-import { useQuery } from "@tanstack/react-query";
 import { useApp } from "@/hooks/use-theme";
-import { marketsQuery, profileQuery, type MarketRow } from "@/lib/cv-queries";
+import type { MarketRow } from "@/lib/cv-queries";
+import { useProfileData } from "@/lib/profile-data-context";
 import { Reveal, SectionHeader } from "./Reveal";
 
 // SVG canvas
@@ -28,8 +28,7 @@ const ease = [0.16, 1, 0.3, 1] as const;
 export function Journey() {
   const { lang } = useApp();
   const isEs = lang === "es";
-  const { data: markets } = useQuery(marketsQuery);
-  const { data: p } = useQuery(profileQuery);
+  const { settings: p, markets } = useProfileData();
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-20%" });
   const [hovered, setHovered] = useState<string | null>(null);
@@ -45,7 +44,7 @@ export function Journey() {
       : "Markets where I planned and activated OOH/DOOH campaigns.");
 
   const points = useMemo(() => {
-    const rows: MarketRow[] = markets ?? [];
+    const rows: MarketRow[] = markets;
     return rows.map((m) => ({ ...m, ...project(m.lat, m.lng) }));
   }, [markets]);
 

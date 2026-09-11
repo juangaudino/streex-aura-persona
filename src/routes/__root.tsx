@@ -73,14 +73,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Juan Resume" },
+      { title: "Tu CV Digital · Streex Aura Persona" },
       {
         name: "description",
         content:
           "Aura Persona is a minimalist, interactive website builder for professional resumes.",
       },
-      { name: "author", content: "Juan Gaudino" },
-      { property: "og:title", content: "Juan Resume" },
+      { property: "og:title", content: "Tu CV Digital · Streex Aura Persona" },
       {
         property: "og:description",
         content:
@@ -88,7 +87,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Juan Resume" },
+      { name: "twitter:title", content: "Tu CV Digital · Streex Aura Persona" },
       {
         name: "twitter:description",
         content:

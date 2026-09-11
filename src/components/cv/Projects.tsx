@@ -1,10 +1,9 @@
 import { ArrowUpRight } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useApp } from "@/hooks/use-theme";
-import { dict } from "@/i18n/dictionary";
-import { profileQuery, projectsQuery, type ProjectRow } from "@/lib/cv-queries";
+import type { ProjectRow } from "@/lib/cv-queries";
+import { useProfileData } from "@/lib/profile-data-context";
 import { Reveal, SectionHeader } from "./Reveal";
 import { CaseStudyModal } from "./CaseStudyModal";
 
@@ -35,16 +34,22 @@ function hasCaseStudy(r: ProjectRow) {
 
 export function Projects() {
   const { lang } = useApp();
-  const fallback = dict[lang].projects;
-  const { data: p } = useQuery(profileQuery);
-  const { data: rows } = useQuery(projectsQuery);
+  const fallback: {
+    eyebrow: string;
+    title: string;
+    items: Array<{ name: string; desc: string; stack: string }>;
+  } =
+    lang === "es"
+      ? { eyebrow: "Campañas seleccionadas", title: "Proyectos destacados.", items: [] }
+      : { eyebrow: "Selected campaigns", title: "Featured projects.", items: [] };
+  const { settings: p, projects: rows } = useProfileData();
   const isEs = lang === "es";
   const eyebrow = (isEs ? p?.projects_eyebrow_es : p?.projects_eyebrow_en) || fallback.eyebrow;
   const title = (isEs ? p?.projects_title_es : p?.projects_title_en) || fallback.title;
 
   const [active, setActive] = useState<ProjectRow | null>(null);
 
-  const dbItems = rows ?? [];
+  const dbItems = rows;
 
   const items = dbItems.length
     ? dbItems.map((r) => ({

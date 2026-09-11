@@ -1,16 +1,9 @@
 import { motion, useScroll, useSpring, useTransform } from "motion/react";
 import { useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Briefcase, GraduationCap, Paperclip, FileText } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
-import { dict } from "@/i18n/dictionary";
-import {
-  timelineQuery,
-  profileQuery,
-  readAttachments,
-  type TimelineItem,
-  type TimelineAttachment,
-} from "@/lib/cv-queries";
+import { readAttachments, type TimelineItem, type TimelineAttachment } from "@/lib/cv-queries";
+import { useProfileData } from "@/lib/profile-data-context";
 import { Reveal, SectionHeader } from "./Reveal";
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -27,12 +20,38 @@ type Item = {
 
 export function Experience() {
   const { lang } = useApp();
-  const fallback = dict[lang].experience;
+  const fallback: {
+    eyebrow: string;
+    title: string;
+    laneWork: string;
+    laneStudy: string;
+    tagWork: string;
+    tagStudy: string;
+    items: Item[];
+  } =
+    lang === "es"
+      ? {
+          eyebrow: "Trayectoria",
+          title: "Experiencia y educación.",
+          laneWork: "Experiencia",
+          laneStudy: "Educación",
+          tagWork: "Trabajo",
+          tagStudy: "Estudio",
+          items: [],
+        }
+      : {
+          eyebrow: "Journey",
+          title: "Experience and education.",
+          laneWork: "Experience",
+          laneStudy: "Education",
+          tagWork: "Work",
+          tagStudy: "Study",
+          items: [],
+        };
+  const { settings: p, timeline: dbItems } = useProfileData();
   const ref = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState<number | null>(null);
 
-  const { data: dbItems } = useQuery(timelineQuery);
-  const { data: p } = useQuery(profileQuery);
   const isEs = lang === "es";
   const t = {
     eyebrow: (isEs ? p?.experience_eyebrow_es : p?.experience_eyebrow_en) || fallback.eyebrow,

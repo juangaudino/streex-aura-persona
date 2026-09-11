@@ -1,15 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
 import { useApp } from "@/hooks/use-theme";
-import { dict } from "@/i18n/dictionary";
-import { profileQuery } from "@/lib/cv-queries";
+import { useProfileData } from "@/lib/profile-data-context";
 import { Reveal, SectionHeader } from "./Reveal";
 
 type Stat = { value: string; label_es?: string; label_en?: string; label?: string };
 
 export function About() {
   const { lang } = useApp();
-  const fallback = dict[lang].about;
-  const { data: p } = useQuery(profileQuery);
+  const fallback: { eyebrow: string; title: string; body: string[]; stats: Stat[] } =
+    lang === "es"
+      ? { eyebrow: "Sobre mí", title: "Perfil profesional.", body: [], stats: [] }
+      : { eyebrow: "About", title: "Professional profile.", body: [], stats: [] };
+  const { settings: p } = useProfileData();
   const isEs = lang === "es";
 
   const eyebrow = (isEs ? p?.about_eyebrow_es : p?.about_eyebrow_en) || fallback.eyebrow;

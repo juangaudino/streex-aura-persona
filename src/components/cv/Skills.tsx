@@ -1,9 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { useQuery } from "@tanstack/react-query";
 import { useApp } from "@/hooks/use-theme";
-import { dict } from "@/i18n/dictionary";
-import { profileQuery, skillsQuery } from "@/lib/cv-queries";
+import { useProfileData } from "@/lib/profile-data-context";
 import { SectionHeader } from "./Reveal";
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -12,9 +10,11 @@ type Group = { key: string; label: string; items: string[] };
 
 export function Skills() {
   const { lang } = useApp();
-  const fallback = dict[lang].skills;
-  const { data: p } = useQuery(profileQuery);
-  const { data: rows } = useQuery(skillsQuery);
+  const fallback: { eyebrow: string; title: string; groups: Record<string, Group> } =
+    lang === "es"
+      ? { eyebrow: "Capacidades", title: "Habilidades.", groups: {} }
+      : { eyebrow: "Capabilities", title: "Skills.", groups: {} };
+  const { settings: p, skills: rows } = useProfileData();
   const isEs = lang === "es";
   const eyebrow = (isEs ? p?.skills_eyebrow_es : p?.skills_eyebrow_en) || fallback.eyebrow;
   const title = (isEs ? p?.skills_title_es : p?.skills_title_en) || fallback.title;
@@ -29,12 +29,8 @@ export function Skills() {
       }
       return Array.from(map.values());
     }
-    return (Object.keys(fallback.groups) as Array<keyof typeof fallback.groups>).map((k) => ({
-      key: k as string,
-      label: fallback.groups[k].label,
-      items: [...fallback.groups[k].items],
-    }));
-  }, [rows, isEs, fallback]);
+    return [];
+  }, [rows, isEs]);
 
   const [active, setActive] = useState<string>(groups[0]?.key ?? "");
   useEffect(() => {

@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { ArrowRight, Mail, Linkedin, Phone } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
-import { dict } from "@/i18n/dictionary";
-import { profileQuery } from "@/lib/cv-queries";
+import { useProfileData } from "@/lib/profile-data-context";
 import { Reveal, SectionHeader } from "./Reveal";
 
 const schema = z.object({
@@ -16,14 +14,32 @@ const schema = z.object({
 
 export function Contact() {
   const { lang } = useApp();
-  const fallback = dict[lang].contact;
-  const { data: p } = useQuery(profileQuery);
+  const { settings: p } = useProfileData();
   const isEs = lang === "es";
   const t = {
-    eyebrow: (isEs ? p?.contact_eyebrow_es : p?.contact_eyebrow_en) || fallback.eyebrow,
-    title: (isEs ? p?.contact_title_es : p?.contact_title_en) || fallback.title,
-    sub: (isEs ? p?.contact_sub_es : p?.contact_sub_en) || fallback.sub,
-    form: fallback.form,
+    eyebrow:
+      (isEs ? p.contact_eyebrow_es : p.contact_eyebrow_en) || (isEs ? "Contacto" : "Contact"),
+    title: (isEs ? p.contact_title_es : p.contact_title_en) || (isEs ? "Hablemos" : "Let’s talk"),
+    sub:
+      (isEs ? p.contact_sub_es : p.contact_sub_en) ||
+      (isEs ? "¿Tienes un proyecto en mente?" : "Have a project in mind?"),
+    form: isEs
+      ? {
+          name: "Nombre",
+          email: "Email",
+          message: "Mensaje",
+          send: "Enviar",
+          sent: "Se abrirá tu cliente de correo.",
+          error: "Revisa los campos e inténtalo de nuevo.",
+        }
+      : {
+          name: "Name",
+          email: "Email",
+          message: "Message",
+          send: "Send",
+          sent: "Your email client will open.",
+          error: "Please review the fields and try again.",
+        },
   };
 
   const [status, setStatus] = useState<"idle" | "sent" | "error">("idle");
@@ -40,7 +56,11 @@ export function Contact() {
     const body = encodeURIComponent(
       `${parsed.data.message}\n\n— ${parsed.data.name} (${parsed.data.email})`,
     );
-    window.location.href = `mailto:juangaudino@gmail.com?subject=${subject}&body=${body}`;
+    if (!p.email) {
+      setStatus("error");
+      return;
+    }
+    window.location.href = `mailto:${p.email}?subject=${subject}&body=${body}`;
     setStatus("sent");
   }
 
@@ -57,28 +77,24 @@ export function Contact() {
             <Reveal delay={0.1}>
               <ul className="mt-8 space-y-4">
                 {[
-                  {
-                    Icon: Mail,
-                    label: "juangaudino@gmail.com",
-                    href: "mailto:juangaudino@gmail.com",
-                  },
-                  { Icon: Phone, label: "+1 (801) 651-8187", href: "tel:+18016518187" },
-                  {
-                    Icon: Linkedin,
-                    label: "linkedin.com/in/juangaudino",
-                    href: "https://linkedin.com/in/juangaudino",
-                  },
-                ].map(({ Icon, label, href }) => (
-                  <li key={label}>
-                    <a
-                      href={href}
-                      className="group inline-flex items-center gap-3 text-foreground transition-opacity hover:opacity-70"
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span className="text-base">{label}</span>
-                    </a>
-                  </li>
-                ))}
+                  p.email && { Icon: Mail, label: p.email, href: `mailto:${p.email}` },
+                  p.phone && { Icon: Phone, label: p.phone, href: `tel:${p.phone}` },
+                  p.linkedin && { Icon: Linkedin, label: p.linkedin, href: p.linkedin },
+                ]
+                  .filter((item): item is { Icon: typeof Mail; label: string; href: string } =>
+                    Boolean(item),
+                  )
+                  .map(({ Icon, label, href }) => (
+                    <li key={label}>
+                      <a
+                        href={href}
+                        className="group inline-flex items-center gap-3 text-foreground transition-opacity hover:opacity-70"
+                      >
+                        <Icon className="h-4 w-4" />
+                        <span className="text-base">{label}</span>
+                      </a>
+                    </li>
+                  ))}
               </ul>
             </Reveal>
           </div>

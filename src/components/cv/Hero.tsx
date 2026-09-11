@@ -7,24 +7,36 @@ import {
   useTransform,
 } from "motion/react";
 import { useEffect, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Download } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
-import { dict } from "@/i18n/dictionary";
-import { profileQuery } from "@/lib/cv-queries";
+import { useProfileData } from "@/lib/profile-data-context";
 import { MagneticButton } from "./MagneticButton";
 
 import { HighwayBackdrop } from "./HighwayBackdrop";
-
-const portraitLightAsset = "/juan-light.png";
-const portraitDarkAsset = "/juan-dark.png";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
 export function Hero() {
   const { lang, theme } = useApp();
-  const fallback = dict[lang].hero;
-  const { data: p } = useQuery(profileQuery);
+  const fallback =
+    lang === "es"
+      ? {
+          eyebrow: "CV Digital",
+          title: ["Perfil", "profesional."],
+          role: "Perfil profesional",
+          location: "",
+          cta: "Ver CV",
+          ctaAlt: "Contactar",
+        }
+      : {
+          eyebrow: "Digital CV",
+          title: ["Professional", "profile."],
+          role: "Professional profile",
+          location: "",
+          cta: "View CV",
+          ctaAlt: "Get in touch",
+        };
+  const { settings: p } = useProfileData();
   const isEs = lang === "es";
   const t = {
     eyebrow: (isEs ? p?.hero_eyebrow_es : p?.hero_eyebrow_en) || fallback.eyebrow,
@@ -90,7 +102,7 @@ export function Hero() {
     };
   }, [mx, my]);
 
-  const matchedPortrait = theme === "dark" ? portraitDarkAsset : portraitLightAsset;
+  const matchedPortrait = theme === "dark" ? p.photo_dark_url : p.photo_light_url;
 
   return (
     <section
@@ -169,8 +181,8 @@ export function Hero() {
             className="mt-10 flex flex-wrap items-center gap-3"
           >
             <MagneticButton
-              href="/cv.pdf"
-              download
+              href={p.cv_url || "#contact"}
+              download={Boolean(p.cv_url)}
               className="group inline-flex items-center gap-2 rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background transition-transform hover:scale-[1.03]"
             >
               <Download className="h-4 w-4" />
@@ -253,7 +265,7 @@ export function Hero() {
                     <motion.img
                       key={theme}
                       src={matchedPortrait}
-                      alt="Juan Gaudino"
+                      alt={p.name || "Profile portrait"}
                       initial={{ opacity: 0, scale: 1.04, y: 12 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0 }}

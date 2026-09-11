@@ -48,14 +48,16 @@ function getSupabaseAdmin() {
 
 let supabaseAdmin: ReturnType<typeof getSupabaseAdmin> | undefined;
 
-function getCachedSupabaseAdmin() {
+export function getCachedSupabaseAdmin() {
   if (!supabaseAdmin) supabaseAdmin = getSupabaseAdmin();
   return supabaseAdmin;
 }
 
 export function isAllowedStoragePath(bucket: PortfolioStorageBucket, path: string): boolean {
   if (!path || path.length > PATH_LIMIT) return false;
-  return bucket === "cv-projects" ? path.startsWith("gallery/") : path.startsWith("timeline/");
+  return bucket === "cv-projects"
+    ? path.startsWith("gallery/")
+    : path.startsWith("timeline/") || path.startsWith("profile/");
 }
 
 function collectPaths(raw: unknown, bucket: PortfolioStorageBucket, allowed: Set<string>) {
@@ -67,31 +69,55 @@ function collectPaths(raw: unknown, bucket: PortfolioStorageBucket, allowed: Set
   }
 }
 
-async function findPublishedPaths(bucket: PortfolioStorageBucket): Promise<Set<string>> {
+async function findPublishedPaths(
+  bucket: PortfolioStorageBucket,
+  profileId: string,
+): Promise<Set<string>> {
   const supabase = getCachedSupabaseAdmin();
   const allowed = new Set<string>();
 
   if (bucket === "cv-projects") {
-    const { data, error } = await supabase.from("projects").select("gallery");
+    const query = supabase.from("projects").select("gallery").eq("profile_id", profileId);
+    const { data, error } = await query;
     if (error) throw error;
     for (const row of data ?? []) collectPaths(row.gallery, bucket, allowed);
   } else {
-    const { data, error } = await supabase.from("timeline_items").select("attachments");
+    const query = supabase.from("timeline_items").select("attachments").eq("profile_id", profileId);
+    const { data, error } = await query;
     if (error) throw error;
     for (const row of data ?? []) collectPaths(row.attachments, bucket, allowed);
+
+    const { data: settings, error: settingsError } = await supabase
+      .from("profile_settings")
+      .select("cv_url, photo_light_url, photo_dark_url")
+      .eq("profile_id", profileId)
+      .maybeSingle();
+    if (settingsError) throw settingsError;
+    collectPaths(
+      settings
+        ? [
+            { path: settings.cv_url },
+            { path: settings.photo_light_url },
+            { path: settings.photo_dark_url },
+          ]
+        : [],
+      bucket,
+      allowed,
+    );
   }
 
   return allowed;
 }
 
-export async function signPublishedStoragePaths(
+export async function signProfileStoragePaths(
+  profileId: string,
   bucket: PortfolioStorageBucket,
   paths: string[],
 ): Promise<Record<string, string>> {
   const requested = [...new Set(paths)].filter((path) => isAllowedStoragePath(bucket, path));
   if (!requested.length) return {};
 
-  const published = await findPublishedPaths(bucket);
+  const published = await findPublishedPaths(bucket, profileId);
   const supabase = getCachedSupabaseAdmin();
   const signed = await Promise.all(
     requested
