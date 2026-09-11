@@ -23,6 +23,12 @@ documento únicamente como contexto de migración. El despliegue público
 existente también continúa siendo el sitio heredado hasta que se publique un
 Worker propio.
 
+El destino Supabase independiente ya creado y verificado es
+`streex-aura-persona` (`ynbpclhwshbilbdnerdu`, región `us-west-2`). Sus siete
+migraciones registradas incluyen el esquema, Storage privado y el helper RLS
+privado. Los asesores actuales de seguridad y rendimiento no reportan
+hallazgos.
+
 ## 1. Crear el backend destino
 
 1. Crea o selecciona un proyecto Supabase propio.
@@ -53,9 +59,11 @@ Worker propio.
    revisa que las tablas, RLS, buckets privados, límites de Storage y permisos
    de funciones coincidan con el modelo esperado.
 
-El proyecto Supabase actualmente configurado durante la auditoría respondió
-correctamente a REST, pero los buckets `cv-attachments` y `cv-projects` no
-existían. Por eso no se debe asumir que el Storage actual está operativo.
+Durante la auditoría inicial, el backend heredado respondió correctamente a
+REST, pero los buckets `cv-attachments` y `cv-projects` no existían. Esa
+observación no representaba al destino nuevo: en `streex-aura-persona` ambos
+buckets ya fueron creados como privados, con límite de 25 MiB y MIME permitido,
+y se verificaron junto con las políticas RLS.
 
 ### Gate de seguridad antes de hacerlo público
 
@@ -159,9 +167,9 @@ el modelo de ejecución; no se debe inferir compatibilidad de un build verde.
 - [x] `.env` fuera del control de versiones.
 - [x] Migraciones locales presentes y Storage documentado.
 - [x] Lint, tests unitarios y validaciones de build documentados y ejecutados en CI.
-- [ ] Crear y seleccionar el proyecto Supabase destino.
-- [x] Aplicar migraciones al destino y verificar RLS/Storage base.
-- [ ] Confirmar en el destino el gate de asesores de seguridad y rendimiento.
+- [x] Crear y seleccionar el proyecto Supabase destino.
+- [x] Aplicar migraciones al destino y verificar RLS/Storage.
+- [x] Confirmar en el destino el gate de asesores de seguridad y rendimiento.
 - [ ] Migrar y validar datos reales.
 - [ ] Configurar Google OAuth y el dominio final.
 - [ ] Publicar el Worker propio y hacer QA autenticado.
