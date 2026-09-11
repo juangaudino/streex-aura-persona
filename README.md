@@ -41,6 +41,7 @@ npm run lint
 npm run test
 npm run typecheck
 npm run build
+npm run verify:independent
 npx wrangler deploy --dry-run
 ```
 

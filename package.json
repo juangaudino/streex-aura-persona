@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "eslint .",
+    "verify:independent": "node scripts/verify-independent.mjs",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write ."
   },
