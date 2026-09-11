@@ -88,12 +88,10 @@ Los retratos del Hero ya son locales y no requieren Storage.
 # Browser/build-time: publishable key only
 VITE_SUPABASE_URL=https://<project-ref>.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_<public-key>
-VITE_SUPABASE_PROJECT_ID=<project-ref>
 
 # Server/Worker runtime
 SUPABASE_URL=https://<project-ref>.supabase.co
 SUPABASE_PUBLISHABLE_KEY=sb_publishable_<public-key>
-SUPABASE_PROJECT_ID=<project-ref>
 SUPABASE_SERVICE_ROLE_KEY=<server-only-secret>
 ```
 
