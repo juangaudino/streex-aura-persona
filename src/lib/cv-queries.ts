@@ -13,7 +13,10 @@ export type MarketRow = Database["public"]["Tables"]["markets"]["Row"];
 export const marketsQuery = queryOptions({
   queryKey: ["markets"],
   queryFn: async (): Promise<MarketRow[]> => {
-    const { data, error } = await supabase.from("markets").select("*").order("sort_order", { ascending: true });
+    const { data, error } = await supabase
+      .from("markets")
+      .select("*")
+      .order("sort_order", { ascending: true });
     if (error) throw error;
     return data ?? [];
   },
@@ -79,7 +82,10 @@ export function readGallery(raw: unknown): ProjectGalleryItem[] {
 export const projectsQuery = queryOptions({
   queryKey: ["projects"],
   queryFn: async (): Promise<ProjectRow[]> => {
-    const { data, error } = await supabase.from("projects").select("*").order("sort_order", { ascending: true });
+    const { data, error } = await supabase
+      .from("projects")
+      .select("*")
+      .order("sort_order", { ascending: true });
     if (error) throw error;
     return refreshProjectStorageUrls(data ?? []);
   },
@@ -88,7 +94,10 @@ export const projectsQuery = queryOptions({
 export const skillsQuery = queryOptions({
   queryKey: ["skills"],
   queryFn: async (): Promise<SkillRow[]> => {
-    const { data, error } = await supabase.from("skills").select("*").order("sort_order", { ascending: true });
+    const { data, error } = await supabase
+      .from("skills")
+      .select("*")
+      .order("sort_order", { ascending: true });
     if (error) throw error;
     return data ?? [];
   },
@@ -106,7 +115,6 @@ export const profileQuery = queryOptions({
     return data;
   },
 });
-
 
 export type TimelineAttachment = {
   path: string;
@@ -161,7 +169,10 @@ async function refreshProjectStorageUrls(rows: ProjectRow[]): Promise<ProjectRow
 
   return rows.map((row, index) => ({
     ...row,
-    gallery: galleries[index].map((item) => ({ ...item, url: urls[item.path] ?? item.url })) as unknown as ProjectRow["gallery"],
+    gallery: galleries[index].map((item) => ({
+      ...item,
+      url: urls[item.path] ?? item.url,
+    })) as unknown as ProjectRow["gallery"],
   }));
 }
 
@@ -173,7 +184,10 @@ async function refreshTimelineStorageUrls(rows: TimelineItem[]): Promise<Timelin
 
   return rows.map((row, index) => ({
     ...row,
-    attachments: attachments[index].map((item) => ({ ...item, url: urls[item.path] ?? item.url })) as unknown as TimelineItem["attachments"],
+    attachments: attachments[index].map((item) => ({
+      ...item,
+      url: urls[item.path] ?? item.url,
+    })) as unknown as TimelineItem["attachments"],
   }));
 }
 

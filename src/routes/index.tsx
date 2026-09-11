@@ -20,9 +20,16 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Juan Gaudino — Media Planner & OOH/DOOH Strategist" },
-      { name: "description", content: "Media planner with 15+ years of experience leading OOH and DOOH campaigns across LATAM. Now based in Salt Lake City, expanding into programmatic and digital analytics for the U.S. market." },
+      {
+        name: "description",
+        content:
+          "Media planner with 15+ years of experience leading OOH and DOOH campaigns across LATAM. Now based in Salt Lake City, expanding into programmatic and digital analytics for the U.S. market.",
+      },
       { property: "og:title", content: "Juan Gaudino — Media Planner & OOH/DOOH Strategist" },
-      { property: "og:description", content: "15+ years planning OOH/DOOH campaigns across LATAM. Based in Salt Lake City, UT." },
+      {
+        property: "og:description",
+        content: "15+ years planning OOH/DOOH campaigns across LATAM. Based in Salt Lake City, UT.",
+      },
     ],
   }),
   component: Index,

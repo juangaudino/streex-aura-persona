@@ -48,7 +48,6 @@ export function Skills() {
       <div className="mx-auto max-w-7xl">
         <SectionHeader eyebrow={t.eyebrow} title={t.title} />
 
-
         <div className="mb-10 flex flex-wrap gap-2">
           {groups.map((g) => (
             <button

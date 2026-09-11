@@ -1,9 +1,21 @@
-import { AnimatePresence, motion, useInView, useMotionValue, useTransform, animate } from "motion/react";
+import {
+  AnimatePresence,
+  motion,
+  useInView,
+  useMotionValue,
+  useTransform,
+  animate,
+} from "motion/react";
 import { X, ArrowUpRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "@/hooks/use-theme";
 import type { ProjectRow } from "@/lib/cv-queries";
-import { readMetrics, readGallery, type ProjectMetric, type ProjectGalleryItem } from "@/lib/cv-queries";
+import {
+  readMetrics,
+  readGallery,
+  type ProjectMetric,
+  type ProjectGalleryItem,
+} from "@/lib/cv-queries";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -60,11 +72,7 @@ export function CaseStudyModal({ project, layoutId, onClose }: Props) {
               <X className="h-4 w-4" />
             </button>
 
-            <CaseStudyContent
-              project={project}
-              isEs={isEs}
-              onOpenImage={setLightbox}
-            />
+            <CaseStudyContent project={project} isEs={isEs} onOpenImage={setLightbox} />
           </motion.div>
 
           <AnimatePresence>
@@ -127,9 +135,7 @@ function CaseStudyContent({
         <h1 className="text-display text-5xl leading-[0.95] sm:text-6xl md:text-7xl lg:text-8xl">
           {title}
         </h1>
-        {desc && (
-          <p className="mt-6 max-w-3xl text-lg text-muted-foreground md:text-xl">{desc}</p>
-        )}
+        {desc && <p className="mt-6 max-w-3xl text-lg text-muted-foreground md:text-xl">{desc}</p>}
         <div className="mt-8 flex flex-wrap gap-2">
           {project.client && (
             <span className="rounded-full border border-border px-3 py-1 text-xs uppercase tracking-widest text-muted-foreground">
@@ -137,7 +143,10 @@ function CaseStudyContent({
             </span>
           )}
           {verticals.map((v) => (
-            <span key={v} className="rounded-full bg-secondary px-3 py-1 text-xs uppercase tracking-widest text-muted-foreground">
+            <span
+              key={v}
+              className="rounded-full bg-secondary px-3 py-1 text-xs uppercase tracking-widest text-muted-foreground"
+            >
               {v}
             </span>
           ))}
@@ -236,7 +245,15 @@ function CaseStudyContent({
   );
 }
 
-function MetricCounter({ metric, isEs, delay }: { metric: ProjectMetric; isEs: boolean; delay: number }) {
+function MetricCounter({
+  metric,
+  isEs,
+  delay,
+}: {
+  metric: ProjectMetric;
+  isEs: boolean;
+  delay: number;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-40px" });
   const mv = useMotionValue(0);

@@ -4,14 +4,10 @@
   "compatibility_date": "2026-09-10",
   "compatibility_flags": ["nodejs_compat"],
   "secrets": {
-    "required": [
-      "SUPABASE_URL",
-      "SUPABASE_PUBLISHABLE_KEY",
-      "SUPABASE_SERVICE_ROLE_KEY"
-    ]
+    "required": ["SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY", "SUPABASE_SERVICE_ROLE_KEY"],
   },
   "main": "src/server.ts",
   "observability": {
-    "enabled": true
-  }
+    "enabled": true,
+  },
 }

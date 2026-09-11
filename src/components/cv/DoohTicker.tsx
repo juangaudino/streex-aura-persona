@@ -44,8 +44,7 @@ export function DoohTicker({ items, speed = 40 }: DoohTickerProps) {
   });
 
   // Fade edges via mask
-  const maskImage =
-    "linear-gradient(to right, transparent, #000 6%, #000 94%, transparent)";
+  const maskImage = "linear-gradient(to right, transparent, #000 6%, #000 94%, transparent)";
 
   // Subtle progress-based glow
   const glowOpacity = useTransform(x, (latestX) => {
@@ -98,11 +97,10 @@ export function DoohTicker({ items, speed = 40 }: DoohTickerProps) {
             className="shrink-0 pr-12 font-mono text-[0.8rem] sm:text-sm uppercase tracking-[0.32em]"
             style={{
               color: "rgb(255, 200, 130)",
-              textShadow:
-                "0 0 6px rgba(255, 180, 80, 0.45), 0 0 18px rgba(255, 180, 80, 0.2)",
+              textShadow: "0 0 6px rgba(255, 180, 80, 0.45), 0 0 18px rgba(255, 180, 80, 0.2)",
             }}
           >
-            {line}     ◆     {line}     ◆    {" "}
+            {line} ◆ {line} ◆{" "}
           </motion.span>
         ))}
       </motion.div>

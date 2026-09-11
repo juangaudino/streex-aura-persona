@@ -34,7 +34,9 @@ export function About() {
           <div className="space-y-6 md:col-span-7 md:col-start-2">
             {body.map((paragraph, i) => (
               <Reveal key={i} delay={i * 0.08}>
-                <p className="text-xl leading-relaxed text-muted-foreground md:text-2xl">{paragraph}</p>
+                <p className="text-xl leading-relaxed text-muted-foreground md:text-2xl">
+                  {paragraph}
+                </p>
               </Reveal>
             ))}
           </div>

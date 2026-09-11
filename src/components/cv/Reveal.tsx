@@ -31,13 +31,7 @@ export function Reveal({
   );
 }
 
-export function SectionHeader({
-  eyebrow,
-  title,
-}: {
-  eyebrow: string;
-  title: string;
-}) {
+export function SectionHeader({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div className="mb-16 md:mb-24">
       <Reveal>

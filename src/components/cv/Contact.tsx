@@ -37,7 +37,9 @@ export function Contact() {
       return;
     }
     const subject = encodeURIComponent(`Contact from ${parsed.data.name}`);
-    const body = encodeURIComponent(`${parsed.data.message}\n\n— ${parsed.data.name} (${parsed.data.email})`);
+    const body = encodeURIComponent(
+      `${parsed.data.message}\n\n— ${parsed.data.name} (${parsed.data.email})`,
+    );
     window.location.href = `mailto:juangaudino@gmail.com?subject=${subject}&body=${body}`;
     setStatus("sent");
   }
@@ -55,9 +57,17 @@ export function Contact() {
             <Reveal delay={0.1}>
               <ul className="mt-8 space-y-4">
                 {[
-                  { Icon: Mail, label: "juangaudino@gmail.com", href: "mailto:juangaudino@gmail.com" },
+                  {
+                    Icon: Mail,
+                    label: "juangaudino@gmail.com",
+                    href: "mailto:juangaudino@gmail.com",
+                  },
                   { Icon: Phone, label: "+1 (801) 651-8187", href: "tel:+18016518187" },
-                  { Icon: Linkedin, label: "linkedin.com/in/juangaudino", href: "https://linkedin.com/in/juangaudino" },
+                  {
+                    Icon: Linkedin,
+                    label: "linkedin.com/in/juangaudino",
+                    href: "https://linkedin.com/in/juangaudino",
+                  },
                 ].map(({ Icon, label, href }) => (
                   <li key={label}>
                     <a
@@ -115,12 +125,8 @@ export function Contact() {
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </motion.button>
 
-              {status === "sent" && (
-                <p className="text-sm text-muted-foreground">{t.form.sent}</p>
-              )}
-              {status === "error" && (
-                <p className="text-sm text-destructive">{t.form.error}</p>
-              )}
+              {status === "sent" && <p className="text-sm text-muted-foreground">{t.form.sent}</p>}
+              {status === "error" && <p className="text-sm text-destructive">{t.form.error}</p>}
             </form>
           </Reveal>
         </div>

@@ -74,14 +74,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Juan Resume" },
-      { name: "description", content: "Aura Persona is a minimalist, interactive website builder for professional resumes." },
+      {
+        name: "description",
+        content:
+          "Aura Persona is a minimalist, interactive website builder for professional resumes.",
+      },
       { name: "author", content: "Juan Gaudino" },
       { property: "og:title", content: "Juan Resume" },
-      { property: "og:description", content: "Aura Persona is a minimalist, interactive website builder for professional resumes." },
+      {
+        property: "og:description",
+        content:
+          "Aura Persona is a minimalist, interactive website builder for professional resumes.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "Juan Resume" },
-      { name: "twitter:description", content: "Aura Persona is a minimalist, interactive website builder for professional resumes." },
+      {
+        name: "twitter:description",
+        content:
+          "Aura Persona is a minimalist, interactive website builder for professional resumes.",
+      },
     ],
     links: [
       {

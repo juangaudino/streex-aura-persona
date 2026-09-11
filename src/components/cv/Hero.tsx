@@ -1,4 +1,11 @@
-import { AnimatePresence, motion, useMotionValue, useScroll, useSpring, useTransform } from "motion/react";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "motion/react";
 import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Download } from "lucide-react";
@@ -22,7 +29,9 @@ export function Hero() {
   const t = {
     eyebrow: (isEs ? p?.hero_eyebrow_es : p?.hero_eyebrow_en) || fallback.eyebrow,
     title: ((isEs ? p?.hero_title_es : p?.hero_title_en) as string[] | undefined)?.length
-      ? (isEs ? p!.hero_title_es : p!.hero_title_en)
+      ? isEs
+        ? p!.hero_title_es
+        : p!.hero_title_en
       : [...fallback.title],
     role: (isEs ? p?.hero_role_es : p?.hero_role_en) || fallback.role,
     location: (isEs ? p?.hero_location_es : p?.hero_location_en) || fallback.location,
@@ -81,8 +90,7 @@ export function Hero() {
     };
   }, [mx, my]);
 
-  const matchedPortrait =
-    theme === "dark" ? portraitDarkAsset : portraitLightAsset;
+  const matchedPortrait = theme === "dark" ? portraitDarkAsset : portraitLightAsset;
 
   return (
     <section
@@ -313,8 +321,7 @@ export function Hero() {
               aria-hidden
               className="absolute inset-x-[10%] bottom-[-4%] h-4 rounded-[50%]"
               style={{
-                background:
-                  "radial-gradient(ellipse at center, rgba(0,0,0,0.55), transparent 70%)",
+                background: "radial-gradient(ellipse at center, rgba(0,0,0,0.55), transparent 70%)",
                 filter: "blur(6px)",
               }}
             />

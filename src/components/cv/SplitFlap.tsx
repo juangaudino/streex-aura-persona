@@ -14,7 +14,10 @@ function Flap({ target, delay, trigger }: FlapProps) {
 
   useEffect(() => {
     if (isSpace) return;
-    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
       setDisplay(target);
       return;
     }
@@ -72,17 +75,9 @@ export function SplitFlap({ text, baseDelay = 0, stagger = 35 }: SplitFlapProps)
   const chars = Array.from(text);
 
   return (
-    <span
-      className="inline-block cursor-default"
-      onPointerEnter={() => setTrigger((t) => t + 1)}
-    >
+    <span className="inline-block cursor-default" onPointerEnter={() => setTrigger((t) => t + 1)}>
       {chars.map((c, i) => (
-        <Flap
-          key={`${i}-${c}`}
-          target={c}
-          delay={baseDelay + i * stagger}
-          trigger={trigger}
-        />
+        <Flap key={`${i}-${c}`} target={c} delay={baseDelay + i * stagger} trigger={trigger} />
       ))}
     </span>
   );

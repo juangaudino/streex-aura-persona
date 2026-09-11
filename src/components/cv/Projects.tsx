@@ -19,12 +19,17 @@ const gradients = [
 
 function hasCaseStudy(r: ProjectRow) {
   return !!(
-    r.challenge_es || r.challenge_en ||
-    r.approach_es || r.approach_en ||
-    r.outcome_es || r.outcome_en ||
+    r.challenge_es ||
+    r.challenge_en ||
+    r.approach_es ||
+    r.approach_en ||
+    r.outcome_es ||
+    r.outcome_en ||
     (Array.isArray(r.metrics) && r.metrics.length) ||
     (Array.isArray(r.gallery) && r.gallery.length) ||
-    r.client || r.year || (r.verticals && r.verticals.length)
+    r.client ||
+    r.year ||
+    (r.verticals && r.verticals.length)
   );
 }
 

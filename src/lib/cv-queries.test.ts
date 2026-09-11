@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  readAboutStats,
-  readAttachments,
-  readGallery,
-  readMetrics,
-} from "./cv-queries";
+import { readAboutStats, readAttachments, readGallery, readMetrics } from "./cv-queries";
 
 describe("CV data normalizers", () => {
   it("normalizes about stats and supports legacy labels", () => {
@@ -22,9 +17,7 @@ describe("CV data normalizers", () => {
   });
 
   it("normalizes metrics and preserves prefixes and suffixes", () => {
-    expect(
-      readMetrics([{ value: 42, prefix: ">", suffix: "%", label: "lift" }]),
-    ).toEqual([
+    expect(readMetrics([{ value: 42, prefix: ">", suffix: "%", label: "lift" }])).toEqual([
       { value: "42", prefix: ">", suffix: "%", label_es: "lift", label_en: "lift" },
     ]);
   });
@@ -37,19 +30,19 @@ describe("CV data normalizers", () => {
         "not-an-entry",
       ]),
     ).toEqual([
-        {
-          path: "gallery/one.jpg",
-          url: "/one.jpg",
-          caption_es: "Uno",
-          caption_en: "",
-        },
-        {
-          path: "gallery/missing.jpg",
-          url: "",
-          caption_es: "",
-          caption_en: "Missing URL",
-        },
-      ]);
+      {
+        path: "gallery/one.jpg",
+        url: "/one.jpg",
+        caption_es: "Uno",
+        caption_en: "",
+      },
+      {
+        path: "gallery/missing.jpg",
+        url: "",
+        caption_es: "",
+        caption_en: "Missing URL",
+      },
+    ]);
   });
 
   it("keeps attachment paths even when a legacy URL is absent", () => {

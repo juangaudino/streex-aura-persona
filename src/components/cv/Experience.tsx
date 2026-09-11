@@ -4,7 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Briefcase, GraduationCap, Paperclip, FileText } from "lucide-react";
 import { useApp } from "@/hooks/use-theme";
 import { dict } from "@/i18n/dictionary";
-import { timelineQuery, profileQuery, readAttachments, type TimelineItem, type TimelineAttachment } from "@/lib/cv-queries";
+import {
+  timelineQuery,
+  profileQuery,
+  readAttachments,
+  type TimelineItem,
+  type TimelineAttachment,
+} from "@/lib/cv-queries";
 import { Reveal, SectionHeader } from "./Reveal";
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -32,12 +38,12 @@ export function Experience() {
     eyebrow: (isEs ? p?.experience_eyebrow_es : p?.experience_eyebrow_en) || fallback.eyebrow,
     title: (isEs ? p?.experience_title_es : p?.experience_title_en) || fallback.title,
     laneWork: (isEs ? p?.experience_lane_work_es : p?.experience_lane_work_en) || fallback.laneWork,
-    laneStudy: (isEs ? p?.experience_lane_study_es : p?.experience_lane_study_en) || fallback.laneStudy,
+    laneStudy:
+      (isEs ? p?.experience_lane_study_es : p?.experience_lane_study_en) || fallback.laneStudy,
     tagWork: (isEs ? p?.experience_tag_work_es : p?.experience_tag_work_en) || fallback.tagWork,
     tagStudy: (isEs ? p?.experience_tag_study_es : p?.experience_tag_study_en) || fallback.tagStudy,
     items: fallback.items,
   };
-
 
   const items: Item[] = useMemo(() => {
     if (dbItems && dbItems.length) {
@@ -67,10 +73,11 @@ export function Experience() {
     target: ref,
     offset: ["start 70%", "end 30%"],
   });
-  const lineScale = useSpring(
-    useTransform(scrollYProgress, [0, 1], [0, 1]),
-    { stiffness: 80, damping: 24, mass: 0.4 },
-  );
+  const lineScale = useSpring(useTransform(scrollYProgress, [0, 1], [0, 1]), {
+    stiffness: 80,
+    damping: 24,
+    mass: 0.4,
+  });
   const glowTop = useTransform(lineScale, (v) => `${v * 100}%`);
 
   return (
@@ -90,11 +97,7 @@ export function Experience() {
           </div>
         </div>
 
-        <div
-          ref={ref}
-          className="relative mx-auto max-w-5xl"
-          onMouseLeave={() => setHovered(null)}
-        >
+        <div ref={ref} className="relative mx-auto max-w-5xl" onMouseLeave={() => setHovered(null)}>
           <div className="absolute left-2 top-0 bottom-0 w-px bg-border md:left-1/2 md:-translate-x-1/2" />
           <motion.div
             style={{ scaleY: lineScale, transformOrigin: "top" }}
@@ -156,7 +159,9 @@ export function Experience() {
                           <Icon className="h-3 w-3" />
                           {isStudy ? t.tagStudy : t.tagWork}
                         </span>
-                        <span className="text-xs tabular-nums text-muted-foreground">{item.period}</span>
+                        <span className="text-xs tabular-nums text-muted-foreground">
+                          {item.period}
+                        </span>
                       </div>
 
                       <h3 className="text-display mt-3 text-2xl md:text-3xl">
@@ -177,7 +182,9 @@ export function Experience() {
                         {item.summary}
                       </p>
                       {item.attachments.length > 0 && (
-                        <div className={`mt-4 flex flex-wrap gap-2 ${isStudy ? "" : "md:justify-end"}`}>
+                        <div
+                          className={`mt-4 flex flex-wrap gap-2 ${isStudy ? "" : "md:justify-end"}`}
+                        >
                           {item.attachments.map((a) => (
                             <a
                               key={a.path}

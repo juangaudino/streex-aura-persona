@@ -50,7 +50,10 @@ function AuthPage() {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center bg-background px-6 text-foreground">
-      <Link to="/" className="absolute left-6 top-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+      <Link
+        to="/"
+        className="absolute left-6 top-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+      >
         <ArrowLeft className="h-4 w-4" /> Volver
       </Link>
 
@@ -74,7 +77,8 @@ function AuthPage() {
         </button>
 
         <div className="my-6 flex items-center gap-3 text-[10px] uppercase tracking-widest text-muted-foreground">
-          <div className="h-px flex-1 bg-border" /> o email <div className="h-px flex-1 bg-border" />
+          <div className="h-px flex-1 bg-border" /> o email{" "}
+          <div className="h-px flex-1 bg-border" />
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4">

@@ -99,22 +99,8 @@ export function HighwayBackdrop() {
           </line>
         </g>
         {/* Side lane lines */}
-        <line
-          x1="560"
-          y1="0"
-          x2="200"
-          y2="400"
-          stroke="rgba(255,180,80,0.35)"
-          strokeWidth="1"
-        />
-        <line
-          x1="640"
-          y1="0"
-          x2="1000"
-          y2="400"
-          stroke="rgba(255,180,80,0.35)"
-          strokeWidth="1"
-        />
+        <line x1="560" y1="0" x2="200" y2="400" stroke="rgba(255,180,80,0.35)" strokeWidth="1" />
+        <line x1="640" y1="0" x2="1000" y2="400" stroke="rgba(255,180,80,0.35)" strokeWidth="1" />
       </svg>
 
       {/* Car light trails */}

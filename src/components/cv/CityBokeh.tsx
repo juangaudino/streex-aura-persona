@@ -33,7 +33,7 @@ export function CityBokeh({ count = 36 }: { count?: number }) {
         y: r2 * 100,
         size: 12 + r3 * 60,
         hue: hues[i % hues.length],
-        opacity: 0.05 + (r3 * 0.08),
+        opacity: 0.05 + r3 * 0.08,
         duration: 14 + r * 12,
         delay: r2 * 6,
         dx: (r - 0.5) * 40,

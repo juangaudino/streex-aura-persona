@@ -20,7 +20,10 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
       new Headers(init.headers).forEach((value, key) => headers.set(key, value));
     }
 
-    if (isNewSupabaseApiKey(supabaseKey) && headers.get("Authorization") === `Bearer ${supabaseKey}`) {
+    if (
+      isNewSupabaseApiKey(supabaseKey) &&
+      headers.get("Authorization") === `Bearer ${supabaseKey}`
+    ) {
       headers.delete("Authorization");
     }
 
@@ -91,13 +94,15 @@ export async function signPublishedStoragePaths(
   const published = await findPublishedPaths(bucket);
   const supabase = getCachedSupabaseAdmin();
   const signed = await Promise.all(
-    requested.filter((path) => published.has(path)).map(async (path) => {
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .createSignedUrl(path, STORAGE_URL_TTL_SECONDS);
-      if (error) throw error;
-      return [path, data.signedUrl] as const;
-    }),
+    requested
+      .filter((path) => published.has(path))
+      .map(async (path) => {
+        const { data, error } = await supabase.storage
+          .from(bucket)
+          .createSignedUrl(path, STORAGE_URL_TTL_SECONDS);
+        if (error) throw error;
+        return [path, data.signedUrl] as const;
+      }),
   );
 
   return Object.fromEntries(signed);

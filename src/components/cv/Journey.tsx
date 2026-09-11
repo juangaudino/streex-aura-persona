@@ -114,7 +114,10 @@ export function Journey() {
                 >
                   <defs>
                     <radialGradient id="mapGlow" cx="50%" cy="50%" r="60%">
-                      <stop offset="0%" stopColor="color-mix(in oklab, var(--accent) 22%, transparent)" />
+                      <stop
+                        offset="0%"
+                        stopColor="color-mix(in oklab, var(--accent) 22%, transparent)"
+                      />
                       <stop offset="100%" stopColor="transparent" />
                     </radialGradient>
                     <pattern id="mapGrid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -140,7 +143,9 @@ export function Journey() {
                       strokeLinecap="round"
                       strokeDasharray="4 6"
                       initial={{ pathLength: 0, opacity: 0 }}
-                      animate={inView ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }}
+                      animate={
+                        inView ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }
+                      }
                       transition={{ duration: 2.4, ease, delay: 0.4 }}
                     />
                   )}
@@ -149,7 +154,11 @@ export function Journey() {
                   {points.map((m, i) => {
                     const isActive = hovered === m.id;
                     return (
-                      <g key={m.id} onMouseEnter={() => setHovered(m.id)} onMouseLeave={() => setHovered(null)}>
+                      <g
+                        key={m.id}
+                        onMouseEnter={() => setHovered(m.id)}
+                        onMouseLeave={() => setHovered(null)}
+                      >
                         {/* Pulse ring */}
                         <motion.circle
                           cx={m.x}
@@ -197,7 +206,9 @@ export function Journey() {
                           fill="currentColor"
                           className="pointer-events-none fill-foreground"
                           initial={{ opacity: 0 }}
-                          animate={inView ? { opacity: isActive || m.is_home ? 1 : 0.65 } : { opacity: 0 }}
+                          animate={
+                            inView ? { opacity: isActive || m.is_home ? 1 : 0.65 } : { opacity: 0 }
+                          }
                           transition={{ duration: 0.4, delay: 0.7 + i * 0.1 }}
                           style={{ fontFamily: "inherit", fontWeight: m.is_home ? 600 : 400 }}
                         >
@@ -209,10 +220,7 @@ export function Journey() {
                 </svg>
 
                 {hovered && (
-                  <HoverCard
-                    market={points.find((m) => m.id === hovered)!}
-                    isEs={isEs}
-                  />
+                  <HoverCard market={points.find((m) => m.id === hovered)!} isEs={isEs} />
                 )}
               </div>
             </Reveal>

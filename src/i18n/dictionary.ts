@@ -80,19 +80,65 @@ export const dict = {
       eyebrow: "Campañas seleccionadas",
       title: "Verticales donde he ejecutado.",
       items: [
-        { name: "Transit Media", desc: "Campañas OOH en buses, metro y transporte público multi-ciudad.", stack: "OOH · LATAM" },
-        { name: "Malls & Retail", desc: "Activaciones DOOH en shoppings y high-traffic retail.", stack: "DOOH · Retail" },
-        { name: "Airports", desc: "Planificación en aeropuertos clave de LATAM para marcas globales.", stack: "OOH/DOOH · Travel" },
-        { name: "Digital Billboards", desc: "Pantallas digitales en corredores premium con segmentación por daypart.", stack: "DOOH · Programmatic" },
+        {
+          name: "Transit Media",
+          desc: "Campañas OOH en buses, metro y transporte público multi-ciudad.",
+          stack: "OOH · LATAM",
+        },
+        {
+          name: "Malls & Retail",
+          desc: "Activaciones DOOH en shoppings y high-traffic retail.",
+          stack: "DOOH · Retail",
+        },
+        {
+          name: "Airports",
+          desc: "Planificación en aeropuertos clave de LATAM para marcas globales.",
+          stack: "OOH/DOOH · Travel",
+        },
+        {
+          name: "Digital Billboards",
+          desc: "Pantallas digitales en corredores premium con segmentación por daypart.",
+          stack: "DOOH · Programmatic",
+        },
       ],
     },
     skills: {
       eyebrow: "Capacidades",
       title: "Estrategia, datos y liderazgo.",
       groups: {
-        strategy: { label: "Estrategia", items: ["Media Planning", "OOH / DOOH", "Market Research", "Vendor Negotiation", "Regional Expansion", "Brand Strategy"] },
-        analytics: { label: "Analítica", items: ["Programmatic Advertising", "Digital Analytics", "Reporting", "Economic Projections", "Campaign Performance", "Insights"] },
-        leadership: { label: "Liderazgo", items: ["Team Leadership (10+)", "Client Relations", "Cross-market Coordination", "Vendor Partnerships", "Executive Reporting", "Bilingüe ES/EN"] },
+        strategy: {
+          label: "Estrategia",
+          items: [
+            "Media Planning",
+            "OOH / DOOH",
+            "Market Research",
+            "Vendor Negotiation",
+            "Regional Expansion",
+            "Brand Strategy",
+          ],
+        },
+        analytics: {
+          label: "Analítica",
+          items: [
+            "Programmatic Advertising",
+            "Digital Analytics",
+            "Reporting",
+            "Economic Projections",
+            "Campaign Performance",
+            "Insights",
+          ],
+        },
+        leadership: {
+          label: "Liderazgo",
+          items: [
+            "Team Leadership (10+)",
+            "Client Relations",
+            "Cross-market Coordination",
+            "Vendor Partnerships",
+            "Executive Reporting",
+            "Bilingüe ES/EN",
+          ],
+        },
       },
     },
     contact: {
@@ -211,19 +257,65 @@ export const dict = {
       eyebrow: "Selected campaigns",
       title: "Verticals I've executed in.",
       items: [
-        { name: "Transit Media", desc: "OOH campaigns across buses, subway and public transport in multiple cities.", stack: "OOH · LATAM" },
-        { name: "Malls & Retail", desc: "DOOH activations in shopping centers and high-traffic retail.", stack: "DOOH · Retail" },
-        { name: "Airports", desc: "Planning across key LATAM airports for global brands.", stack: "OOH/DOOH · Travel" },
-        { name: "Digital Billboards", desc: "Digital screens in premium corridors with daypart targeting.", stack: "DOOH · Programmatic" },
+        {
+          name: "Transit Media",
+          desc: "OOH campaigns across buses, subway and public transport in multiple cities.",
+          stack: "OOH · LATAM",
+        },
+        {
+          name: "Malls & Retail",
+          desc: "DOOH activations in shopping centers and high-traffic retail.",
+          stack: "DOOH · Retail",
+        },
+        {
+          name: "Airports",
+          desc: "Planning across key LATAM airports for global brands.",
+          stack: "OOH/DOOH · Travel",
+        },
+        {
+          name: "Digital Billboards",
+          desc: "Digital screens in premium corridors with daypart targeting.",
+          stack: "DOOH · Programmatic",
+        },
       ],
     },
     skills: {
       eyebrow: "Capabilities",
       title: "Strategy, data and leadership.",
       groups: {
-        strategy: { label: "Strategy", items: ["Media Planning", "OOH / DOOH", "Market Research", "Vendor Negotiation", "Regional Expansion", "Brand Strategy"] },
-        analytics: { label: "Analytics", items: ["Programmatic Advertising", "Digital Analytics", "Reporting", "Economic Projections", "Campaign Performance", "Insights"] },
-        leadership: { label: "Leadership", items: ["Team Leadership (10+)", "Client Relations", "Cross-market Coordination", "Vendor Partnerships", "Executive Reporting", "Bilingual ES/EN"] },
+        strategy: {
+          label: "Strategy",
+          items: [
+            "Media Planning",
+            "OOH / DOOH",
+            "Market Research",
+            "Vendor Negotiation",
+            "Regional Expansion",
+            "Brand Strategy",
+          ],
+        },
+        analytics: {
+          label: "Analytics",
+          items: [
+            "Programmatic Advertising",
+            "Digital Analytics",
+            "Reporting",
+            "Economic Projections",
+            "Campaign Performance",
+            "Insights",
+          ],
+        },
+        leadership: {
+          label: "Leadership",
+          items: [
+            "Team Leadership (10+)",
+            "Client Relations",
+            "Cross-market Coordination",
+            "Vendor Partnerships",
+            "Executive Reporting",
+            "Bilingual ES/EN",
+          ],
+        },
       },
     },
     contact: {
