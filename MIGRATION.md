@@ -29,6 +29,12 @@ migraciones registradas incluyen el esquema, Storage privado y el helper RLS
 privado. Los asesores actuales de seguridad y rendimiento no reportan
 hallazgos.
 
+Cloudflare también está autenticado en la cuenta correcta, pero el Worker
+`streex-aura-persona` todavía no existe y, por tanto, aún no tiene secretos ni
+deployments. El primer despliegue deberá recibir los tres secretos declarados
+en `wrangler.jsonc`; el valor de `SUPABASE_SERVICE_ROLE_KEY` debe aportarse
+localmente y nunca enviarse por chat ni subirse al repositorio.
+
 ## 1. Crear el backend destino
 
 1. Crea o selecciona un proyecto Supabase propio.
