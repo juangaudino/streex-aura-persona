@@ -185,6 +185,11 @@ create table public.user_roles (
   unique (user_id, role)
 );
 
+-- Garantiza que el bootstrap pueda tener un solo admin incluso bajo concurrencia.
+create unique index user_roles_one_admin_idx
+  on public.user_roles (role)
+  where role = 'admin';
+
 -- ----------------------------------------------------------------------------
 -- 3. Grants (obligatorios: Supabase no los otorga por defecto)
 -- ----------------------------------------------------------------------------
@@ -232,12 +237,20 @@ language plpgsql
 security definer
 set search_path = public
 as $$
-declare _uid uuid := auth.uid();
+declare
+  _uid uuid := auth.uid();
+  _inserted integer;
 begin
-  if _uid is null then return false; end if;
-  if exists (select 1 from public.user_roles where role = 'admin') then return false; end if;
-  insert into public.user_roles (user_id, role) values (_uid, 'admin');
-  return true;
+  if _uid is null then
+    return false;
+  end if;
+
+  insert into public.user_roles (user_id, role)
+  values (_uid, 'admin')
+  on conflict do nothing;
+
+  get diagnostics _inserted = row_count;
+  return _inserted = 1;
 end;
 $$;
 
@@ -251,6 +264,13 @@ begin
   return new;
 end;
 $$;
+
+-- SECURITY DEFINER functions are explicit internal APIs, not public endpoints.
+revoke all on function public.has_role(uuid, public.app_role) from public;
+grant execute on function public.has_role(uuid, public.app_role) to authenticated;
+revoke all on function public.claim_admin() from public;
+grant execute on function public.claim_admin() to authenticated;
+revoke all on function public.tg_set_updated_at() from public;
 
 -- ----------------------------------------------------------------------------
 -- 4. RLS — lectura pública, escritura solo admin
@@ -322,32 +342,39 @@ create trigger markets_set_updated_at before update on public.markets
 -- ----------------------------------------------------------------------------
 -- 7. Storage
 -- Buckets privados; el frontend genera signed URLs (10 años) al subir.
--- Crear los buckets desde el dashboard (Storage → New bucket, privados)
--- o con la API. Luego aplicar estas políticas:
+-- Se crean aquí para que un proyecto nuevo sea reproducible.
 -- ----------------------------------------------------------------------------
--- insert into storage.buckets (id, name, public) values
---   ('cv-attachments', 'cv-attachments', false),
---   ('cv-projects', 'cv-projects', false);
+insert into storage.buckets (id, name, public) values
+  ('cv-attachments', 'cv-attachments', false),
+  ('cv-projects', 'cv-projects', false)
+on conflict (id) do update set public = false;
 
-create policy "Public read attachments" on storage.objects
-  for select to anon, authenticated
-  using (bucket_id in ('cv-attachments', 'cv-projects'));
+create policy "Admins read CV storage" on storage.objects
+  for select to authenticated
+  using (
+    bucket_id in ('cv-attachments', 'cv-projects')
+    and public.has_role(auth.uid(), 'admin')
+  );
 
-create policy "Admins upload attachments" on storage.objects
+create policy "Admins insert CV storage" on storage.objects
   for insert to authenticated
   with check (
     bucket_id in ('cv-attachments', 'cv-projects')
     and public.has_role(auth.uid(), 'admin')
   );
 
-create policy "Admins update attachments" on storage.objects
+create policy "Admins update CV storage" on storage.objects
   for update to authenticated
   using (
     bucket_id in ('cv-attachments', 'cv-projects')
     and public.has_role(auth.uid(), 'admin')
+  )
+  with check (
+    bucket_id in ('cv-attachments', 'cv-projects')
+    and public.has_role(auth.uid(), 'admin')
   );
 
-create policy "Admins delete attachments" on storage.objects
+create policy "Admins delete CV storage" on storage.objects
   for delete to authenticated
   using (
     bucket_id in ('cv-attachments', 'cv-projects')

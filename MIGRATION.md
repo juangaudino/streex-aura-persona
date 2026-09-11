@@ -1,173 +1,130 @@
-# Guía de migración: de Lovable a GitHub + hosting propio
+# Guía de migración: de Lovable a un proyecto independiente
 
-Este documento explica cómo sacar este proyecto de Lovable y correrlo de forma
-independiente: tu propio backend (Supabase), tu propio hosting y cero
-dependencias de paquetes propietarios.
+Este documento describe el estado real del repositorio y el procedimiento para
+conectarlo a un backend y un hosting propios. No se debe aplicar sobre el
+proyecto Supabase heredado sin hacer antes una copia, reconciliar migraciones y
+confirmar que ese proyecto es el destino correcto.
 
----
+## Estado actual del repositorio
 
-## 0. Panorama rápido
+La capa de aplicación ya no depende del runtime de Lovable:
 
-El proyecto depende de Lovable en 4 puntos:
+- Vite usa los plugins públicos de TanStack Start, Cloudflare, React y Tailwind.
+- `wrangler.jsonc` define el Worker y `src/server.ts` es su entrypoint.
+- Auth usa directamente `supabase.auth` para email/password y Google.
+- Los retratos del Hero viven en `public/juan-light.png` y
+  `public/juan-dark.png`; no dependen de `/__l5e`.
+- `@lovable.dev/cloud-auth-js`, el bridge de preview y el error reporting de
+  Lovable fueron eliminados.
+- `.env` ya no está versionado. Usa `.env.example` como plantilla.
 
-| # | Dependencia | Dónde está | Solución |
-|---|-------------|-----------|----------|
-| 1 | Base de datos + Auth + Storage (Lovable Cloud) | 6 tablas, 2 buckets de storage | Supabase propio + `supabase/schema.sql` |
-| 2 | Variables de entorno | `.env` (no commitear) | Definirlas en tu hosting |
-| 3 | `@lovable.dev/vite-tanstack-config` | `vite.config.ts` | Reescribir con plugins oficiales (sección 4) |
-| 4 | `@lovable.dev/cloud-auth-js` | `src/integrations/lovable/index.ts` | Reemplazar por Supabase OAuth nativo (sección 5) |
+Todavía existen referencias históricas a Lovable en `README.md` y en este
+documento únicamente como contexto de migración. El despliegue público
+existente también continúa siendo el sitio heredado hasta que se publique un
+Worker propio.
 
-> Hasta completar los pasos 1–5, el sitio público igual renderiza (usa los
-> textos de respaldo de `src/i18n/dictionary.ts`), pero sin datos del admin.
+## 1. Crear el backend destino
 
----
+1. Crea o selecciona un proyecto Supabase propio.
+2. Enlaza el repositorio solo cuando el destino esté confirmado:
 
-## 1. Llevar el código a GitHub
-
-Dos opciones:
-
-**A. Sync nativo de Lovable (recomendado para empezar)**
-En el editor de Lovable: menú **+ → GitHub → Connect project → Create Repository**.
-Sync bidireccional en tiempo real; puedes trabajar local y en Lovable a la vez.
-
-**B. Exportar y subir manualmente**
-Descarga el ZIP del codebase y súbelo a un repo nuevo. Pierdes el sync con
-Lovable (el proyecto de Lovable queda congelado).
-
-```bash
-git clone git@github.com:tu-usuario/tu-repo.git
-cd tu-repo
-bun install   # o npm install
-```
-
-## 2. Backend propio (Supabase)
-
-1. Crea un proyecto gratis en [supabase.com](https://supabase.com).
-2. En el **SQL Editor**, pega y ejecuta todo `supabase/schema.sql`
-   (crea tablas, enums, políticas de acceso, funciones y triggers).
-3. En **Storage**, crea dos buckets **privados**: `cv-attachments` y `cv-projects`.
-4. En **Authentication → Providers**, habilita **Email** y **Google**
-   (para Google necesitas crear credenciales OAuth en Google Cloud Console y
-   pegarlas en Supabase; la URL de callback que te da Supabase va en Google).
-5. **Crea tu cuenta y reclama el admin**: regístrate desde la app (`/auth`),
-   luego en el SQL Editor ejecuta:
-   ```sql
-   select public.claim_admin();  -- con tu sesión activa, o:
-   insert into public.user_roles (user_id, role)
-     values ('<tu-user-uuid>', 'admin');
+   ```bash
+   supabase link --project-ref <target-project-ref>
    ```
-6. **Migrar los datos**: en Lovable ve a **Cloud → Advanced settings →
-   Export data** para obtener un dump de las tablas, y restáuralo en tu
-   proyecto (SQL Editor o `psql`). O simplemente vuelve a cargar el contenido
-   desde el panel `/admin` (son pocos datos).
-7. **Archivos de storage** (fotos del hero, certificados, galerías): hoy son
-   URLs del storage de Lovable. Descárgalos y súbelos a los buckets nuevos,
-   luego actualiza las URLs desde `/admin`.
+
+3. Para un proyecto nuevo, aplica las migraciones de
+   `supabase/migrations/` en orden o usa `supabase/schema.sql` como baseline.
+4. La migración `20260911003221_harden_storage_and_admin_claim.sql` crea los
+   buckets privados, restringe Storage al rol admin, hace atómico el primer
+   claim de admin y limita el `EXECUTE` de las funciones `SECURITY DEFINER`.
+5. Configura Auth → Providers con Email y Google. En Google Cloud Console
+   registra el callback que indique Supabase y las URLs de redirección de cada
+   entorno.
+6. Registra una cuenta desde `/auth` y asígnale el primer rol admin mediante
+   `claim_admin()` o una inserción controlada en `user_roles`.
+
+El proyecto Supabase actualmente configurado durante la auditoría respondió
+correctamente a REST, pero los buckets `cv-attachments` y `cv-projects` no
+existían. Por eso no se debe asumir que el Storage actual está operativo.
+
+## 2. Migrar datos y archivos
+
+Las tablas de contenido son `profile_settings`, `timeline_items`, `projects`,
+`skills`, `markets` y `user_roles`. Exporta los datos del backend heredado,
+revisa los UUID y las referencias, y restaura solo en el proyecto destino.
+
+Los archivos administrables usan dos buckets privados:
+
+- `cv-attachments`: adjuntos de experiencias.
+- `cv-projects`: galerías de proyectos.
+
+Las URLs guardadas en `attachments` y `gallery` pueden ser URLs firmadas y no
+deben copiarse como si fueran permanentes. Sube los archivos al destino,
+conserva sus paths y genera nuevas URLs según el modelo de acceso elegido.
+Los retratos del Hero ya son locales y no requieren Storage.
 
 ## 3. Variables de entorno
 
-Crea un `.env` local (y configúralas en tu hosting) con los valores de TU
-proyecto Supabase (Settings → API):
+```bash
+# Browser/build-time: publishable key only
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_<public-key>
+VITE_SUPABASE_PROJECT_ID=<project-ref>
+
+# Server/Worker runtime
+SUPABASE_URL=https://<project-ref>.supabase.co
+SUPABASE_PUBLISHABLE_KEY=sb_publishable_<public-key>
+SUPABASE_PROJECT_ID=<project-ref>
+SUPABASE_SERVICE_ROLE_KEY=<server-only-secret>
+```
+
+La service-role key no debe aparecer en `VITE_*`, código cliente, logs, GitHub,
+el browser ni `wrangler.jsonc`.
+
+## 4. Desarrollo y validación
 
 ```bash
-# Cliente (visibles en el browser)
-VITE_SUPABASE_URL=https://<tu-proyecto>.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=<anon key>
-
-# Servidor (server functions / SSR)
-SUPABASE_URL=https://<tu-proyecto>.supabase.co
-SUPABASE_PUBLISHABLE_KEY=<anon key>
-SUPABASE_SERVICE_ROLE_KEY=<service_role key>   # nunca exponer al browser
+npm install
+npm run dev
+npm run build
+npx tsc --noEmit
+npx wrangler deploy --dry-run
 ```
 
-## 4. Quitar `@lovable.dev/vite-tanstack-config`
+También se mantiene `bun.lock`; si usas Bun, instala con
+`bun install --frozen-lockfile`. No mezcles cambios de lockfiles sin revisar
+qué gestor será el estándar del CI.
 
-Reemplaza `vite.config.ts` por la config estándar de TanStack Start:
+## 5. Deploy independiente
 
-```ts
-import { defineConfig } from "vite";
-import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import viteReact from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
-import tsConfigPaths from "vite-tsconfig-paths";
+El repositorio está preparado para Cloudflare Workers:
 
-export default defineConfig({
-  server: { port: 8080 },
-  plugins: [
-    tsConfigPaths(),
-    tanstackStart({
-      // Elige el preset según tu hosting:
-      // target: "cloudflare-module"  // Cloudflare Workers/Pages
-      // target: "vercel"             // Vercel
-      // target: "netlify"            // Netlify
-      // target: "node-server"        // VPS / Node propio (default)
-    }),
-    viteReact(),
-    tailwindcss(),
-  ],
-});
+```bash
+npm run deploy
 ```
 
-Luego: `bun remove @lovable.dev/vite-tanstack-config` y asegúrate de tener
-instalados `@tanstack/react-start`, `@vitejs/plugin-react`,
-`@tailwindcss/vite` y `vite-tsconfig-paths`.
+Antes del primer deploy configura las variables en el entorno del Worker,
+confirma el nombre del Worker en `wrangler.jsonc` y decide el dominio público.
+El `--dry-run` local solo valida el empaquetado; no prueba autenticación,
+dominios, bindings ni datos de producción.
 
-Notas:
-- `src/server.ts` es un wrapper de errores propio; si lo conservas, mantén la
-  opción `server: { entry: "server" }` en la config de tanstackStart.
-- Si usas `node-server`: `bun run build` genera `.output/`, y lo sirves con
-  `node .output/server/index.mjs` detrás de tu proxy.
+Para Vercel, Netlify o Node/VPS habrá que elegir explícitamente el adaptador y
+el modelo de ejecución; no se debe inferir compatibilidad de un build verde.
 
-## 5. Quitar `@lovable.dev/cloud-auth-js`
+## 6. Checklist de independencia
 
-En `src/routes/auth.tsx`, donde hoy se usa:
+- [x] Build independiente de la configuración Vite de Lovable.
+- [x] Auth independiente de `cloud-auth-js`.
+- [x] Retratos principales servidos desde el repositorio.
+- [x] `.env` fuera del control de versiones.
+- [x] Migraciones locales presentes y Storage documentado.
+- [ ] Crear y seleccionar el proyecto Supabase destino.
+- [ ] Aplicar migraciones al destino y verificar RLS/Storage.
+- [ ] Migrar y validar datos reales.
+- [ ] Configurar Google OAuth y el dominio final.
+- [ ] Publicar el Worker propio y hacer QA autenticado.
+- [ ] Decidir si se actualiza el README histórico con la documentación final.
 
-```ts
-import { lovable } from "@/integrations/lovable";
-await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
-```
-
-reemplázalo por la llamada nativa de Supabase:
-
-```ts
-import { supabase } from "@/integrations/supabase/client";
-await supabase.auth.signInWithOAuth({
-  provider: "google",
-  options: { redirectTo: window.location.origin + "/auth" },
-});
-```
-
-Después: `bun remove @lovable.dev/cloud-auth-js` y borra
-`src/integrations/lovable/`.
-
-## 6. Deploy
-
-- **Cloudflare Pages/Workers**: preset `cloudflare-module`, casi cero cambios
-  (es el target actual del proyecto).
-- **Vercel / Netlify**: preset correspondiente, conecta el repo y listo.
-- **VPS propio**: preset `node-server`, `bun run build` en CI, sirve
-  `.output/server/index.mjs` con un proceso Node (pm2/systemd) + nginx.
-
-En todos los casos: define las variables de entorno de la sección 3 en el
-panel del hosting.
-
-## 7. Checklist de verificación post-migración
-
-- [ ] `/` carga y muestra datos desde TU base (edita algo en `/admin` y verifica)
-- [ ] Login con Google y email funciona en `/auth`
-- [ ] `/admin` te reconoce como admin (rol en `user_roles`)
-- [ ] Subir un adjunto (imagen/PDF) a una experiencia funciona
-- [ ] El PDF del CV (`public/cv.pdf`) descarga
-- [ ] Las fotos del hero apuntan al nuevo storage (o a `src/assets/`)
-
-## Notas finales
-
-- **No commitees `.env`** con claves reales; el anon key es público por diseño
-  pero el `service_role` jamás debe llegar al browser ni al repo.
-- Los archivos `src/integrations/supabase/*` son standalone: funcionan igual
-  fuera de Lovable, solo necesitan las env vars correctas. No hace falta
-  tocarlos (salvo regenerar `types.ts` con `supabase gen types` si cambias
-  el schema).
-- Este documento asume Supabase como backend nuevo; cualquier otro stack
-  (Postgres + Auth.js + S3, por ejemplo) requiere reescribir
-  `src/lib/cv-queries.ts` y la auth.
+Hasta completar los elementos pendientes, el repositorio es portable a nivel
+de código y build, pero todavía no constituye una migración operativa completa
+del backend ni del deployment público.

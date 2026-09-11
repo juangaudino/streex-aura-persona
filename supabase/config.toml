@@ -1,1 +1,2 @@
-project_id = "gwckzzemhlrwzjjicrld"
+# Deployment-specific project refs must be supplied explicitly when linking:
+# supabase link --project-ref <target-project-ref>
