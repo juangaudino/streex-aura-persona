@@ -34,7 +34,7 @@ export function Skills() {
       label: fallback.groups[k].label,
       items: [...fallback.groups[k].items],
     }));
-  }, [rows, isEs, fallback.groups]);
+  }, [rows, isEs, fallback]);
 
   const [active, setActive] = useState<string>(groups[0]?.key ?? "");
   useEffect(() => {

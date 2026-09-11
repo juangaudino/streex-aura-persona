@@ -1024,7 +1024,7 @@ function ProjectsEditor() {
   const qc = useQueryClient();
   const { data: rows, isLoading } = useQuery(projectsQuery);
   const [editing, setEditing] = useState<ProjectDraft | null>(null);
-  const items = rows ?? [];
+  const items = useMemo(() => rows ?? [], [rows]);
   const nextOrder = useMemo(
     () => (items.length ? Math.max(...items.map((i) => i.sort_order)) + 10 : 10),
     [items],
@@ -1379,7 +1379,7 @@ function SkillsEditor() {
   const qc = useQueryClient();
   const { data: rows, isLoading } = useQuery(skillsQuery);
   const [editing, setEditing] = useState<SkillDraft | null>(null);
-  const items = rows ?? [];
+  const items = useMemo(() => rows ?? [], [rows]);
   const nextOrder = useMemo(
     () => (items.length ? Math.max(...items.map((i) => i.sort_order)) + 1 : 0),
     [items],
