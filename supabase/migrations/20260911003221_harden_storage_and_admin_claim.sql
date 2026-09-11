@@ -10,11 +10,14 @@ REVOKE ALL ON FUNCTION public.tg_set_updated_at() FROM PUBLIC;
 DROP FUNCTION IF EXISTS public.claim_admin();
 
 -- The application uses signed URLs, so the buckets must remain private.
-INSERT INTO storage.buckets (id, name, public)
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES
-  ('cv-attachments', 'cv-attachments', FALSE),
-  ('cv-projects', 'cv-projects', FALSE)
-ON CONFLICT (id) DO UPDATE SET public = FALSE;
+  ('cv-attachments', 'cv-attachments', FALSE, 26214400, ARRAY['image/*', 'application/pdf']::text[]),
+  ('cv-projects', 'cv-projects', FALSE, 26214400, ARRAY['image/*']::text[])
+ON CONFLICT (id) DO UPDATE SET
+  public = FALSE,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
 
 DROP POLICY IF EXISTS "public read cv-attachments" ON storage.objects;
 DROP POLICY IF EXISTS "Public read attachments" ON storage.objects;

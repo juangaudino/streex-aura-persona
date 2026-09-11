@@ -36,7 +36,8 @@ Worker propio.
    `supabase/migrations/` en orden o usa `supabase/schema.sql` como baseline.
 4. La migración `20260911003221_harden_storage_and_admin_claim.sql` crea los
    buckets privados, restringe Storage al rol admin, elimina el claim público
-   de admin y limita el `EXECUTE` de las funciones `SECURITY DEFINER`.
+   de admin, impone 25 MiB y MIME permitidos en cada bucket, y limita el
+   `EXECUTE` de las funciones `SECURITY DEFINER`.
 5. Configura Auth → Providers con Email y Google. En Google Cloud Console
    registra el callback que indique Supabase y las URLs de redirección de cada
    entorno.

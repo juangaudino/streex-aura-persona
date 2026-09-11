@@ -316,12 +316,17 @@ create trigger markets_set_updated_at before update on public.markets
 -- ----------------------------------------------------------------------------
 -- 7. Storage
 -- Buckets privados; el frontend genera signed URLs (10 años) al subir.
+-- El límite de tamaño y MIME también se impone en Storage, no solo en la UI.
 -- Se crean aquí para que un proyecto nuevo sea reproducible.
 -- ----------------------------------------------------------------------------
-insert into storage.buckets (id, name, public) values
-  ('cv-attachments', 'cv-attachments', false),
-  ('cv-projects', 'cv-projects', false)
-on conflict (id) do update set public = false;
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values
+  ('cv-attachments', 'cv-attachments', false, 26214400, array['image/*', 'application/pdf']::text[]),
+  ('cv-projects', 'cv-projects', false, 26214400, array['image/*']::text[])
+on conflict (id) do update set
+  public = false,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
 
 create policy "Admins read CV storage" on storage.objects
   for select to authenticated
