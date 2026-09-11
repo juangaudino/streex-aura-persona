@@ -41,7 +41,8 @@ Worker propio.
    registra el callback que indique Supabase y las URLs de redirección de cada
    entorno.
 6. Crea o confirma la cuenta del propietario y asígnale el rol admin mediante
-   una inserción controlada en `user_roles` (el repositorio ya no expone
+   una inserción controlada en `user_roles`; puedes partir de
+   `supabase/bootstrap_admin.sql.example` (el repositorio ya no expone
    `claim_admin()`).
 
 El proyecto Supabase actualmente configurado durante la auditoría respondió

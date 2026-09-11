@@ -1,0 +1,16 @@
+-- Bootstrap manual del propietario. Ejecutar solo después de crear y verificar
+-- la cuenta en Supabase Auth y aplicar el schema/migrations del repositorio.
+-- Reemplaza el email por el del propietario antes de ejecutar.
+
+INSERT INTO public.user_roles (user_id, role)
+SELECT id, 'admin'::public.app_role
+FROM auth.users
+WHERE lower(email) = lower('owner@example.com')
+ON CONFLICT (user_id, role) DO NOTHING;
+
+-- Debe devolver exactamente la cuenta del propietario.
+SELECT u.id, u.email, r.role
+FROM auth.users AS u
+JOIN public.user_roles AS r ON r.user_id = u.id
+WHERE lower(u.email) = lower('owner@example.com')
+  AND r.role = 'admin';
