@@ -371,4 +371,8 @@ create policy "Admins delete CV storage" on storage.objects
 -- ----------------------------------------------------------------------------
 -- Fila inicial de profile_settings (el Admin la edita después)
 -- ----------------------------------------------------------------------------
-insert into public.profile_settings (singleton, name) values (true, 'Juan Gaudino');
+insert into public.profile_settings (singleton, name)
+select true, 'Juan Gaudino'
+where not exists (
+  select 1 from public.profile_settings where singleton = true
+);

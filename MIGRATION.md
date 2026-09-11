@@ -24,10 +24,16 @@ existiendo como referencia, pero el Worker independiente ya está publicado en
 el dominio propio de la aplicación.
 
 El destino Supabase independiente ya creado y verificado es
-`streex-aura-persona` (`ynbpclhwshbilbdnerdu`, región `us-west-2`). Sus siete
-migraciones registradas incluyen el esquema, Storage privado y el helper RLS
-privado. Los asesores actuales de seguridad y rendimiento no reportan
-hallazgos.
+`streex-aura-persona` (`ynbpclhwshbilbdnerdu`, región `us-west-2`). Sus ocho
+migraciones registradas incluyen el esquema, Storage privado, el helper RLS
+privado y la fila singleton inicial de `profile_settings`. Los asesores
+actuales de seguridad y rendimiento no reportan hallazgos.
+
+La historia de migraciones también fue reconciliada: las versiones que el
+aplicador remoto había registrado con timestamps nuevos se marcaron como
+equivalentes a los ocho archivos versionados en Git. `supabase migration list`
+queda alineado y `supabase db push --dry-run` confirma que no hay migraciones
+pendientes. No se ejecutó un reset remoto ni se modificó contenido existente.
 
 Cloudflare está autenticado en la cuenta correcta y el Worker
 `streex-aura-persona` está publicado en `persona.getstreex.com`. El build
@@ -65,6 +71,11 @@ repositorio.
 8. Ejecuta `supabase/verify_destination.sql` en el SQL Editor del destino y
    revisa que las tablas, RLS, buckets privados, límites de Storage y permisos
    de funciones coincidan con el modelo esperado.
+
+El repositorio ya está enlazado localmente al destino mediante el estado
+ignorado de Supabase CLI. Para futuros cambios, crea una migración nueva,
+pruébala localmente y usa `supabase db push --dry-run` antes de aplicarla; no
+uses `db reset --linked` porque destruiría los datos del destino.
 
 Durante la auditoría inicial, el backend heredado respondió correctamente a
 REST, pero los buckets `cv-attachments` y `cv-projects` no existían. Esa
@@ -178,6 +189,12 @@ el modelo de ejecución; no se debe inferir compatibilidad de un build verde.
 - [x] Lint, tests unitarios y validaciones de build documentados y ejecutados en CI.
 - [x] Crear y seleccionar el proyecto Supabase destino.
 - [x] Aplicar migraciones al destino y verificar RLS/Storage.
+- [x] Crear la fila singleton inicial de `profile_settings` sin sobrescribir datos.
+- [x] Reconciliar la historia local/remota de migraciones.
+- [ ] Crear la cuenta propietaria en Auth y asignarle `admin`.
+- [ ] Configurar Google OAuth y las URLs finales de redirección.
+- [ ] Migrar y validar los datos/contenidos reales del proyecto heredado.
+- [ ] Ejecutar QA autenticado del panel Admin y de la gestión de Storage.
 - [x] Confirmar en el destino el gate de asesores de seguridad y rendimiento.
 - [ ] Migrar y validar datos reales.
 - [ ] Configurar Google OAuth.
